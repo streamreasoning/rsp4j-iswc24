@@ -82,7 +82,7 @@ public class PGraphStreamGenerator {
     private void generateDataAndAddToStream(DataStream<PGraph> stream, long ts) {
         String event = "testGraph" + (randomGenerator.nextInt(10));
         System.out.println(event);
-        URL url = PGraphStreamGenerator.class.getClassLoader().getResource("events/" + event + ".json");
+        URL url = PGraphStreamGenerator.class.getClassLoader().getResource(event + ".json");
         try (FileReader fileReader = new FileReader(url.getPath())) {
             PGraph pGraph2 = PGraphImpl.fromJson(fileReader);
             stream.put(pGraph2, System.currentTimeMillis());

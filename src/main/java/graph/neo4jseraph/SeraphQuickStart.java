@@ -1,11 +1,8 @@
-package graph.neo;
+package graph.neo4jseraph;
 
 import graph.neo.operators.FullQueryUnaryCypher;
 import graph.neo.operators.RelationToStreamOpImpl2;
 import graph.neo.sds.SDSNeo;
-import graph.neo.seraph.QueryFactory;
-import graph.neo.seraph.SeraphQuery;
-import graph.neo.seraph.WindowNode;
 import graph.neo.stream.PGStreamGenerator;
 import graph.neo.stream.data.PGraph;
 import graph.neo.stream.data.PGraphOrTable;
@@ -28,22 +25,21 @@ import shared.operatorsimpl.r2r.DAG.DAGImpl;
 import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
 import shared.querying.TaskImpl;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class SeraphParsingStart {
+public class SeraphQuickStart {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws InterruptedException {
 
         /*------------Input and Output Stream definitions------------*/
 
         // Define a generator to create input graphs
         PGStreamGenerator generator = new PGStreamGenerator();
         // Define input stream objects from the generator
-//        DataStream<PGraph> inputStreamColors = generator.getStream("http://test/stream1");
+        DataStream<PGraph> inputStreamColors = generator.getStream("http://test/stream1");
         // define an output stream
 
         DataStream<Map<String, Object>> outStream = new RowStream("out");
@@ -89,43 +85,20 @@ public class SeraphParsingStart {
 
         /*------------S2R, R2R and R2S Operators------------*/
 
-
-        SeraphQuery studentTrick = QueryFactory.parse(
-                "" +
-                "REGISTER QUERY student_trick STARTING AT NOW {\n" +
-                "MATCH (b:Bike)-[r:rentedAt]->(s:Station)" +
-                "WITHIN PT10S\n" +
-                "EMIT b.bike_id, s.station_id, r.val_time\n" +
-                "ON ENTERING EVERY PT5S }" +
-                "");
-
-        final Task<PGraph, PGraph, PGraphOrTable, Map<String, Object>> task = new TaskImpl<>();
-
-        studentTrick.getWindowMap().forEach((w, s) -> {
-            //Define the Stream to Relation operators (blueprint of the windows), each with its own size and sliding parameters.
-
-            generator.addStream(s);
-
-            StreamToRelationOperator<PGraph, PGraph, PGraphOrTable> s2rOp_one =
-                    new CSPARQLStreamToRelationOpImpl<>(
-                            tick,
-                            instance,
-                            w.iri(),
-                            accumulatorContentFactory,
-                            report_grain,
-                            report,
-                            w.getRange(),
-                            w.getStep());
-
-            task.addS2ROperator(s2rOp_one, s);
-
-        });
-
-
-        List<String> windows = studentTrick.getWindowMap().keySet().stream().map(WindowNode::iri).collect(Collectors.toList());
+        //Define the Stream to Relation operators (blueprint of the windows), each with its own size and sliding parameters.
+        StreamToRelationOperator<PGraph, PGraph, PGraphOrTable> s2rOp_one =
+                new CSPARQLStreamToRelationOpImpl<>(
+                        tick,
+                        instance,
+                        "w1",
+                        accumulatorContentFactory,
+                        report_grain,
+                        report,
+                        10000,
+                        10000);
 
         //Define Relation to Relation operators and chain them together. Here we select all the graphs from the input streams and perform a union
-        RelationToRelationOperator<PGraphOrTable> r2rOp1 = new FullQueryUnaryCypher(studentTrick.getR2R(), windows, "partial_1");
+        RelationToRelationOperator<PGraphOrTable> r2rOp1 = new FullQueryUnaryCypher("MATCH (n)-[:rentedAt]->(m) RETURN n.bike_id, m.station_id", Collections.singletonList(s2rOp_one.getName()), "partial_1");
 
         //Relation to Stream operator, used to transform the result of a query (type R) to a stream of output objects (type O)
         RelationToStreamOpImpl2 r2sOp = new RelationToStreamOpImpl2();
@@ -134,17 +107,17 @@ public class SeraphParsingStart {
         /*------------Task definition------------*/
 
         //Define the Tasks, each of which represent a query
-        task
+        Task<PGraph, PGraph, PGraphOrTable, Map<String, Object>> task = new TaskImpl<>();
+        task = task.addS2ROperator(s2rOp_one, inputStreamColors)
                 .addR2ROperator(r2rOp1)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())
                 .addSDS(new SDSNeo())
                 .addTime(instance);
-
         task.initialize();
 
         List<DataStream<PGraph>> inputStreams = new ArrayList<>();
-        inputStreams.addAll(studentTrick.getWindowMap().values());
+        inputStreams.add(inputStreamColors);
 
         List<DataStream<Map<String, Object>>> outputStreams = new ArrayList<>();
         outputStreams.add(outStream);
