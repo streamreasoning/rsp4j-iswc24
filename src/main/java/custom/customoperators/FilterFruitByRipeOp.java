@@ -2,7 +2,7 @@ package custom.customoperators;
 
 import custom.customdatatypes.Fruit;
 import custom.customdatatypes.FruitBasket;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class FilterFruitByRipeOp implements RelationToRelationOperator<FruitBask
     //Attribute to filter out
     String query;
 
-    public FilterFruitByRipeOp(String query, List<String> tvgNames, String resName){
+    public FilterFruitByRipeOp(String query, List<String> tvgNames, String resName) {
         this.query = query;
         this.tvgNames = tvgNames;
         this.resName = resName;
@@ -26,8 +26,8 @@ public class FilterFruitByRipeOp implements RelationToRelationOperator<FruitBask
         FruitBasket op = datasets.get(0);
         FruitBasket res = new FruitBasket();
         //Add only the fruits with a status different from the one passed to the query
-        for(Fruit fruit : op){
-            if(!fruit.getStatus().equals(query))
+        for (Fruit fruit : op) {
+            if (!fruit.getStatus().equals(query))
                 res.addFruit(fruit);
         }
         return res;

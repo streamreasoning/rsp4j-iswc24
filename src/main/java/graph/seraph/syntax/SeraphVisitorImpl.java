@@ -1,5 +1,6 @@
 package graph.seraph.syntax;
 
+import graph.ContinuousQuery;
 import graph.seraph.events.PGraph;
 import graph.seraph.events.PGraphOrResult;
 import graph.seraph.events.Result;
@@ -11,27 +12,26 @@ import graph.seraph.streams.SDSNeo;
 import graph.seraph.syntax.parser.SeraphBaseVisitor;
 import graph.seraph.syntax.parser.SeraphParser;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import org.streamreasoning.rsp4j.api.secret.content.ContentFactory;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
-import shared.querying.TaskImpl;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.content.ContentFactory;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
 
 import java.time.Duration;
 import java.util.*;
 
-public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
+public class SeraphVisitorImpl extends SeraphBaseVisitor<ContinuousQuery> {
 
 
     private Map<String, StreamToRelationOperator<PGraph, PGraph, PGraphOrResult>> inputs = new HashMap<>();
@@ -45,7 +45,6 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
 
     private final Report report = new ReportImpl();
     private final Tick tick = Tick.TIME_DRIVEN;
-    private final ReportGrain report_grain = ReportGrain.SINGLE;
     private final Time instance = new TimeImpl(0);
 
 
@@ -61,7 +60,7 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
 
 
     @Override
-    public SeraphQuery visitOC_Seraph(SeraphParser.OC_SeraphContext ctx) {
+    public ContinuousQuery visitOC_Seraph(SeraphParser.OC_SeraphContext ctx) {
 
         // *S2R Part
         inputParameters.put("identifier", ctx.id.getText());
@@ -87,13 +86,13 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
     }
 
     @Override
-    public SeraphQuery visitOC_ProjectionBody(SeraphParser.OC_ProjectionBodyContext ctx) {
+    public ContinuousQuery visitOC_ProjectionBody(SeraphParser.OC_ProjectionBodyContext ctx) {
 
         return super.visitOC_ProjectionBody(ctx);
     }
 
     @Override
-    public SeraphQuery visitOC_ProjectionItem(SeraphParser.OC_ProjectionItemContext ctx) {
+    public ContinuousQuery visitOC_ProjectionItem(SeraphParser.OC_ProjectionItemContext ctx) {
         String text = "";
         if (ctx.children.size() > 1) {
             text = ctx.children.get(ctx.children.size() - 1).getText();
@@ -103,12 +102,12 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
     }
 
     @Override
-    public SeraphQuery visitOC_ProjectionItems(SeraphParser.OC_ProjectionItemsContext ctx) {
+    public ContinuousQuery visitOC_ProjectionItems(SeraphParser.OC_ProjectionItemsContext ctx) {
         return super.visitOC_ProjectionItems(ctx);
     }
 
     @Override
-    public SeraphQuery visitOC_Return(SeraphParser.OC_ReturnContext ctx) {
+    public ContinuousQuery visitOC_Return(SeraphParser.OC_ReturnContext ctx) {
 
         outputParameters.put("returnStatement", ctx.children.get(0).getText());
         String returnStatement = ctx.children.get(1).getText();
@@ -125,7 +124,7 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
 
 
     @Override
-    public SeraphQuery visitOC_Match(SeraphParser.OC_MatchContext ctx) {
+    public ContinuousQuery visitOC_Match(SeraphParser.OC_MatchContext ctx) {
 
         StringBuilder cypherMatch = new StringBuilder();
 
@@ -149,18 +148,18 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
 
 
     @Override
-    public SeraphQuery visitOC_With(SeraphParser.OC_WithContext ctx) {
+    public ContinuousQuery visitOC_With(SeraphParser.OC_WithContext ctx) {
         relationParameters.get("r2r").get(relationParameters.get("r2r").size() - 1).append(ctx.getText());
         return super.visitOC_With(ctx);
     }
 
-    public SeraphQuery visitOC_Unwind(SeraphParser.OC_UnwindContext ctx) {
+    public ContinuousQuery visitOC_Unwind(SeraphParser.OC_UnwindContext ctx) {
         relationParameters.get("r2r").get(relationParameters.get("r2r").size() - 1).append(ctx.getText());
         return super.visitOC_Unwind(ctx);
     }
 
     //returns the parsed seraph query
-    public SeraphQuery<PGraph, PGraph, PGraphOrResult, Result> getQuery(String stream) {
+    public ContinuousQuery<PGraph, PGraph, PGraphOrResult, Result> getQuery(String stream) {
 
         System.out.println("-----------------PARSING-----------------");
 
@@ -174,8 +173,7 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
         Duration range = Duration.parse(relationParameters.get("range").get(0));
         Duration period = Duration.parse((CharSequence) outputParameters.get("period"));
 
-        CSPARQLStreamToRelationOpImpl<PGraph, PGraph, PGraphOrResult> w1 = new CSPARQLStreamToRelationOpImpl<>(tick, instance, "w1", accumulatorContentFactory, report_grain, report, range.toMillis(), period.toMillis());
-
+        HoppingWindowOpImpl<PGraph, PGraph, PGraphOrResult> w1 = new HoppingWindowOpImpl<>(tick, instance, "w1", accumulatorContentFactory, report, range.toMillis(), period.toMillis());
 
         Task<PGraph, PGraph, PGraphOrResult, Result> task = new TaskImpl<>();
 
@@ -189,7 +187,7 @@ public class SeraphVisitorImpl extends SeraphBaseVisitor<SeraphQuery> {
 
         task.initialize();
 
-        return new SeraphQuery<>(inputParameters.get("identifier"), task, projections, new ResultStream(inputParameters.get("identifier")), dataStream);
+        return new ContinuousQuery<>(inputParameters.get("identifier"), task, projections, new ResultStream(inputParameters.get("identifier")), List.of(dataStream));
     }
 
 }

@@ -4,29 +4,28 @@ import graph.seraph.events.PGraph;
 import graph.seraph.events.PGraphOrResult;
 import graph.seraph.events.Result;
 import graph.seraph.op.FullQueryUnaryNeo;
-import graph.seraph.op.PGraphStreamGenerator;
 import graph.seraph.op.RelationToStreamOpNeo;
+import graph.seraph.streams.PGraphStreamGenerator;
 import graph.seraph.streams.ResultStream;
 import graph.seraph.streams.SDSNeo;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import org.streamreasoning.rsp4j.api.secret.content.ContentFactory;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.coordinators.ContinuousProgramImpl;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
-import shared.querying.TaskImpl;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.content.ContentFactory;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +63,6 @@ public class Noe4JQuickStart {
         Report report = new ReportImpl();
         report.add(new OnWindowClose());
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
 
         //Time object used to represent the time in our application
         Time instance = new TimeImpl(0);
@@ -94,7 +92,7 @@ public class Noe4JQuickStart {
         /*------------S2R, R2R and R2S Operators------------*/
 
         //Define the Stream to Relation operators (blueprint of the windows), each with its own size and sliding parameters.
-        StreamToRelationOperator<PGraph, PGraph, PGraphOrResult> s2rOp_one = new CSPARQLStreamToRelationOpImpl<>(tick, instance, "w1", accumulatorContentFactory, report_grain, report, 1000, 1000);
+        StreamToRelationOperator<PGraph, PGraph, PGraphOrResult> s2rOp_one = new HoppingWindowOpImpl<>(tick, instance, "w1", accumulatorContentFactory, report, 1000, 1000);
 
 //        StreamToRelationOperator<PGraph, PGraph, PGraphOrBindings> s2rOp_two =
 //                new CSPARQLStreamToRelationOpImpl<>(
@@ -125,7 +123,10 @@ public class Noe4JQuickStart {
                 .addR2ROperator(r2rOp1)
 //                .addR2ROperator(r2rOp2)
 //                .addR2ROperator(r2rBinaryOp)
-                .addR2SOperator(r2sOp).addDAG(new DAGImpl<>()).addSDS(new SDSNeo()).addTime(instance);
+                .addR2SOperator(r2sOp)
+                .addDAG(new DAGImpl<>())
+                .addSDS(new SDSNeo())
+                .addTime(instance);
         task.initialize();
 
 

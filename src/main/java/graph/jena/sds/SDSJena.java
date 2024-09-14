@@ -13,20 +13,21 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.util.Context;
-import org.streamreasoning.rsp4j.api.sds.SDS;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.sds.SDS;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class SDSJena implements SDS<JenaGraphOrBindings>, Dataset {
 
-    private final Set<TimeVarying<JenaGraphOrBindings>> defs = new HashSet<>();
     private final Map<Node, TimeVarying<JenaGraphOrBindings>> tvgs = new HashMap<>();
     private final Node def = NodeFactory.createURI("def");
 
     private static Dataset dataset = DatasetFactory.createGeneral();
-
 
     @Override
     public Collection<TimeVarying<JenaGraphOrBindings>> asTimeVaryingEs() {
@@ -41,7 +42,7 @@ public class SDSJena implements SDS<JenaGraphOrBindings>, Dataset {
 
     @Override
     public void add(TimeVarying<JenaGraphOrBindings> tvg) {
-        defs.add(tvg);
+//        tvgs.put(def, tvg);
     }
 
 
@@ -59,13 +60,6 @@ public class SDSJena implements SDS<JenaGraphOrBindings>, Dataset {
 
         DatasetGraph dg = dataset.asDatasetGraph();
 
-
-        defs.stream().map(g -> {
-                    g.materialize(ts);
-                    return g.get();
-                }).map(r->r.getContent()).flatMap(Graph::stream)
-                .forEach(t -> dg.add(def, t.getSubject(), t.getPredicate(), t.getObject()));
-
         tvgs.entrySet().stream()
                 .map(e -> {
                     e.getValue().materialize(ts);
@@ -78,7 +72,7 @@ public class SDSJena implements SDS<JenaGraphOrBindings>, Dataset {
 
     @Override
     public Stream<JenaGraphOrBindings> toStream() {
-        return null;
+        return tvgs.values().stream().map(TimeVarying::get);
     }
 
     //From Jena Dataset, redirected to interal dataset

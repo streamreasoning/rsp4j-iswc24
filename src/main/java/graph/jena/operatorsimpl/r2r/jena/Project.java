@@ -3,10 +3,9 @@ package graph.jena.operatorsimpl.r2r.jena;
 import graph.jena.datatypes.JenaGraphOrBindings;
 import org.apache.jena.sparql.algebra.op.OpProject;
 import org.apache.jena.sparql.engine.binding.BindingProject;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.result.SolutionMapping;
-import org.streamreasoning.rsp4j.api.sds.SDS;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.sds.SDS;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 
 import java.util.Collection;
 import java.util.List;
@@ -69,7 +68,4 @@ public class Project implements RelationToRelationOperator<JenaGraphOrBindings> 
         return null;
     }
 
-    public SolutionMapping<JenaGraphOrBindings> createSolutionMapping(JenaGraphOrBindings result) {
-        return null;
-    }
 }

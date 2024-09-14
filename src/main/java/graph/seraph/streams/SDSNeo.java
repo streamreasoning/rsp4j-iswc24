@@ -1,8 +1,8 @@
 package graph.seraph.streams;
 
 import graph.seraph.events.PGraphOrResult;
-import org.streamreasoning.rsp4j.api.sds.SDS;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.sds.SDS;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 
 import java.util.Collection;
 import java.util.HashMap;

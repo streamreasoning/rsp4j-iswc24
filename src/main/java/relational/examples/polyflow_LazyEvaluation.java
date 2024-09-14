@@ -1,22 +1,24 @@
 package relational.examples;
 
 import org.javatuples.Tuple;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import shared.coordinators.ContinuousProgramImpl;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import shared.querying.TaskImpl;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
 import relational.operatorsimpl.r2r.CustomRelationalQuery;
 import relational.operatorsimpl.r2r.R2RjtablesawJoin;
 import relational.operatorsimpl.r2r.R2RjtablesawSelection;
@@ -24,9 +26,6 @@ import relational.operatorsimpl.r2s.RelationToStreamjtablesawImpl;
 import relational.sds.SDSjtablesaw;
 import relational.stream.RowStream;
 import relational.stream.RowStreamGenerator;
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
 import tech.tablesaw.api.*;
 
 import java.util.ArrayList;
@@ -49,7 +48,6 @@ public class polyflow_LazyEvaluation {
         report.add(new OnWindowClose());
 
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
         Time instance = new TimeImpl(0);
         Time instance_2 = new TimeImpl(0);
         Table emptyContent = Table.create();
@@ -114,22 +112,20 @@ public class polyflow_LazyEvaluation {
         ContinuousProgram<Tuple, Tuple, Table, Tuple> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Tuple, Tuple, Table> s2rOp_1 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w1",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
         StreamToRelationOperator<Tuple, Tuple, Table> s2rOp_2 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance_2,
                         "w2",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);

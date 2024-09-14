@@ -2,6 +2,7 @@ package graph.seraph.syntax;
 
 //import org.streamreasoning.rsp4j.yasper.querying.syntax.QueryFactory;
 
+import graph.ContinuousQuery;
 import org.apache.commons.configuration.ConfigurationException;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class ParsingExample {
 
         try {
 
-            SeraphQuery studentTrick = (SeraphQuery) QueryFactory.parse(
+            ContinuousQuery studentTrick = (ContinuousQuery) SeraphQueryFactory.parse(
                     "REGISTER QUERY student_trick STARTING AT 2022-10-14T14:45 {\n" +
                     "WITH duration({minutes : 5}) as _5m,\n" +
                     "duration({minutes : 20}) as _20m\n" +

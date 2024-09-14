@@ -3,9 +3,9 @@ package graph.jena.operatorsimpl.r2r.jena;
 import graph.jena.datatypes.JenaGraphOrBindings;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.sds.SDS;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.sds.SDS;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 
 import java.util.Collection;
 import java.util.List;

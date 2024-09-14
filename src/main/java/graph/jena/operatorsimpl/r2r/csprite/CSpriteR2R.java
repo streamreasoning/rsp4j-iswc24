@@ -4,7 +4,7 @@ import graph.jena.datatypes.JenaGraphOrBindings;
 import graph.jena.operatorsimpl.r2r.jena.BGP;
 import graph.jena.operatorsimpl.r2r.jena.TP;
 import org.apache.jena.vocabulary.RDF;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 
 import java.util.HashSet;
 import java.util.List;

@@ -7,23 +7,23 @@ import custom.customoperators.CustomTumblingWindow;
 import custom.customoperators.FilterFruitByRipeOp;
 import custom.customoperators.RelationToStreamFruitOp;
 import custom.stream.FruitStreamGenerator;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import org.streamreasoning.rsp4j.api.secret.content.ContentFactory;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.coordinators.ContinuousProgramImpl;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.querying.TaskImpl;
-import shared.sds.SDSDefault;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.content.ContentFactory;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.polyflow.base.sds.SDSDefault;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,11 +62,10 @@ public class FruitStepByStepGuide {
                     return fb;
                 },
                 (basket_1, basket_2) -> {
-                    if(basket_1.getSize()>basket_2.getSize()){
+                    if (basket_1.getSize() > basket_2.getSize()) {
                         basket_1.addAll(basket_2);
                         return basket_1;
-                    }
-                    else{
+                    } else {
                         basket_2.addAll(basket_1);
                         return basket_2;
                     }
@@ -135,13 +134,12 @@ public class FruitStepByStepGuide {
 
         /*------------Output Stream consumer------------*/
 
-        outStream.addConsumer((out, el, ts) -> System.out.println("Output Element: ["+el+ "]" + " @ " + ts));
+        outStream.addConsumer((out, el, ts) -> System.out.println("Output Element: [" + el + "]" + " @ " + ts));
 
         generator.startStreaming();
         Thread.sleep(20_000);
         generator.stopStreaming();
     }
-
 
 
 }

@@ -11,24 +11,23 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.compose.Union;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.coordinators.ContinuousProgramImpl;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
-import shared.querying.TaskImpl;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,7 +49,6 @@ public class polyflowExample_twoS2R {
         report.add(new OnWindowClose());
 
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
         Time instance = new TimeImpl(0);
 
         JenaGraphOrBindings emptyContent = new JenaGraphOrBindings(GraphFactory.createGraphMem());
@@ -66,23 +64,21 @@ public class polyflowExample_twoS2R {
         ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_one =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w1",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
 
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_two =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w2",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         500,
                         500);

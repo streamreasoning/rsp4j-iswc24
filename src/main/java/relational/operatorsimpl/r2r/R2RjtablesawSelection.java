@@ -1,7 +1,7 @@
 package relational.operatorsimpl.r2r;
 
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 import tech.tablesaw.api.Table;
 
 import java.util.Collection;

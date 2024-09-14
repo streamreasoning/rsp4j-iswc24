@@ -1,7 +1,7 @@
 package relational.sds;
 
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 
 public class TimeVaryingObjectjtablesaw<R extends Iterable<?>> implements TimeVarying<R> {
 
@@ -32,11 +32,6 @@ public class TimeVaryingObjectjtablesaw<R extends Iterable<?>> implements TimeVa
     @Override
     public String iri() {
         return name;
-    }
-
-    @Override
-    public void setIri(String name) {
-        this.name = name;
     }
 
 }

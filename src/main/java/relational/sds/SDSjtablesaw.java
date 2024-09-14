@@ -1,9 +1,8 @@
 package relational.sds;
 
 
-import org.apache.commons.rdf.api.IRI;
-import org.streamreasoning.rsp4j.api.sds.SDS;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.sds.SDS;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 import relational.datatypes.TableWrapper;
 import tech.tablesaw.api.Table;
 

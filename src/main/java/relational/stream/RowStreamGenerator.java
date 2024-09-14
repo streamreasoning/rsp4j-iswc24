@@ -4,7 +4,7 @@ package relational.stream;
 import org.javatuples.Pair;
 import org.javatuples.Quartet;
 import org.javatuples.Tuple;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -6,7 +6,7 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

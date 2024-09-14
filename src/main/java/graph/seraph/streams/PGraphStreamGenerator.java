@@ -1,9 +1,8 @@
-package graph.seraph.op;
+package graph.seraph.streams;
 
 import graph.seraph.events.PGraph;
 import graph.seraph.events.PGraphImpl;
-import graph.seraph.streams.PGStream;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.io.File;
 import java.io.FileNotFoundException;

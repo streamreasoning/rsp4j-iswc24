@@ -1,21 +1,21 @@
-package graph.seraph.syntax;
+package graph;
 
 
-import org.streamreasoning.rsp4j.api.querying.Task;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.util.List;
 
 //Seraph query
-public class SeraphQuery<I, W, R extends Iterable<?>, O> {
+public class ContinuousQuery<I, W, R extends Iterable<?>, O> {
 
     private final List<String> projections;
     private final String id;
     private final Task<I, W, R, O> task;
     private DataStream<O> output;
-    private DataStream<I> input;
+    private List<DataStream<I>> input;
 
-    public SeraphQuery(String id, Task task, List<String> projections, DataStream<O> output, DataStream<I> input) {
+    public ContinuousQuery(String id, Task task, List<String> projections, DataStream<O> output, List<DataStream<I>> input) {
         this.projections = projections;
         this.id = id;
         this.task = task;
@@ -47,7 +47,7 @@ public class SeraphQuery<I, W, R extends Iterable<?>, O> {
         this.input = input;
     }
 
-    public DataStream<I> instream() {
+    public List<DataStream<I>> instream() {
         return input;
     }
 }

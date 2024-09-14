@@ -13,7 +13,7 @@ import org.apache.jena.sparql.core.ResultBinding;
 import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingFactory;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

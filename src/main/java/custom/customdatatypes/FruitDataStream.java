@@ -1,7 +1,7 @@
 package custom.customdatatypes;
 
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.Consumer;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.Consumer;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.util.ArrayList;
 import java.util.List;

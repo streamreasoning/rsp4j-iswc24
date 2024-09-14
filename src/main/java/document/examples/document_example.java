@@ -5,34 +5,30 @@ import document.operatorsimpl.r2r.RelationToRelationDocumentSelection;
 import document.operatorsimpl.r2s.RelationToStreamDocument;
 import document.stream.DocumentStream;
 import document.stream.DocumentStreamGenerator;
-
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import shared.coordinators.ContinuousProgramImpl;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import shared.querying.TaskImpl;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
-
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
-import shared.sds.SDSDefault;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.polyflow.base.sds.SDSDefault;
 
 import java.util.ArrayList;
-
 import java.util.List;
 
 public class document_example {
-    public static void main(String [] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
         DocumentStreamGenerator generator = new DocumentStreamGenerator();
 
@@ -45,18 +41,17 @@ public class document_example {
         report.add(new OnWindowClose());
 
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
         Time instance = new TimeImpl(0);
         DocumentCollection emptyContent = new DocumentCollection();
 
         AccumulatorContentFactory<String, String, DocumentCollection> accumulatorContentFactory = new AccumulatorContentFactory<>(
-                t->t,
-                (t)->{
+                t -> t,
+                (t) -> {
                     DocumentCollection dc = new DocumentCollection();
                     dc.addElement(t);
                     return dc;
                 },
-                (d1, d2)->d1.append(d2),
+                (d1, d2) -> d1.append(d2),
                 emptyContent
         );
 
@@ -64,16 +59,14 @@ public class document_example {
         ContinuousProgram<String, String, DocumentCollection, String> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<String, String, DocumentCollection> s2rOp_1 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w1",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
-
 
 
         RelationToRelationOperator<DocumentCollection> r2rOp = new RelationToRelationDocumentSelection(List.of("w1"), "partial_1");
@@ -97,7 +90,7 @@ public class document_example {
 
         cp.buildTask(task, inputStreams, outputStreams);
 
-        outStream.addConsumer((out, el, ts)-> System.out.println(el + " @ " + ts));
+        outStream.addConsumer((out, el, ts) -> System.out.println(el + " @ " + ts));
 
         generator.startStreaming();
     }

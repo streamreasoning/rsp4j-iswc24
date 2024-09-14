@@ -1,7 +1,7 @@
 package custom.customoperators;
 
 import custom.customdatatypes.FruitBasket;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 
 import java.util.List;
 

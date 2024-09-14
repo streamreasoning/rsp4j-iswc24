@@ -1,20 +1,14 @@
 package document.stream;
 
-import org.apache.jena.atlas.json.io.parser.JSONParser;
-import org.javatuples.Pair;
-import org.javatuples.Quartet;
-import org.javatuples.Tuple;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
-import relational.stream.RowStream;
+import org.json.JSONArray;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.json.*;
 
 public class DocumentStreamGenerator {
 
@@ -31,17 +25,16 @@ public class DocumentStreamGenerator {
     public DocumentStreamGenerator() {
         this.activeStreams = new HashMap<>();
         this.isStreaming = new AtomicBoolean(false);
-        try{
+        try {
             s1 = new Scanner(f1);
-        }catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
         }
-        while(s1.hasNext()){
+        while (s1.hasNext()) {
             stringBuilder.append(s1.nextLine());
         }
         this.jsonArray = new JSONArray(stringBuilder.toString());
 
     }
-
 
 
     public DataStream<String> getStream(String streamURI) {
@@ -61,7 +54,7 @@ public class DocumentStreamGenerator {
                     long finalTs = ts;
                     activeStreams.entrySet().forEach(e -> generateDataAndAddToStream(e.getValue(), finalTs));
                     ts += 300;
-                    count+=1;
+                    count += 1;
                     try {
                         Thread.sleep(TIMEOUT);
                     } catch (InterruptedException e) {
@@ -80,7 +73,7 @@ public class DocumentStreamGenerator {
 
     private void generateDataAndAddToStream(DataStream<String> stream, long ts) {
         String json;
-        if(stream.getName().equals("http://test/stream1")) {
+        if (stream.getName().equals("http://test/stream1")) {
             stream.put(jsonArray.get(count).toString(), ts);
         }
 

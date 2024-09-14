@@ -1,19 +1,17 @@
 package custom.customoperators;
 
-import shared.sds.TimeVaryingObject;
-import org.streamreasoning.rsp4j.api.RDFUtils;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.exceptions.OutOfOrderElementException;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.instance.Window;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.instance.WindowImpl;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
-import org.streamreasoning.rsp4j.api.secret.content.Content;
-import org.streamreasoning.rsp4j.api.secret.content.ContentFactory;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeInstant;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.exceptions.OutOfOrderElementException;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.instance.Window;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.instance.WindowImpl;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.secret.content.Content;
+import org.streamreasoning.polyflow.api.secret.content.ContentFactory;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeInstant;
+import org.streamreasoning.polyflow.base.sds.TimeVaryingObject;
 
 import java.util.Collections;
 import java.util.List;
@@ -59,8 +57,9 @@ public class CustomTumblingWindow<I, W, R extends Iterable<?>> implements Stream
     private Content<I, W, R> active_content;
     private Content<I, W, R> reported_content;
     private long t0;
+
     public CustomTumblingWindow(Time time, String name, ContentFactory<I, W, R> cf, Report report,
-                                         long width) {
+                                long width) {
 
         this.time = time;
         this.name = name;
@@ -86,24 +85,20 @@ public class CustomTumblingWindow<I, W, R extends Iterable<?>> implements Stream
         return time;
     }
 
-    @Override
-    public ReportGrain grain() {
-        return null;
-    }
 
     @Override
     public Content<I, W, R> content(long t_e) {
-        if(reported_content!=null)
+        if (reported_content != null)
             return reported_content;
         //If I need the content when the reported_content is null, it means that someone else triggered the computation, so we just return the active content if present
-        if(active_content != null)
+        if (active_content != null)
             return active_content;
         return cf.createEmpty();
     }
 
     @Override
     public List<Content<I, W, R>> getContents(long t_e) {
-        if(reported_content!= null)
+        if (reported_content != null)
             return Collections.singletonList(reported_content);
         else return Collections.singletonList(cf.createEmpty());
     }
@@ -121,29 +116,29 @@ public class CustomTumblingWindow<I, W, R extends Iterable<?>> implements Stream
         if (time.getAppTime() > ts) {
             throw new OutOfOrderElementException("(" + arg + "," + ts + ")");
         }
-        System.out.println("Received element (" + arg + ") at time " + ts + " ms at window "+name);
+        System.out.println("Received element (" + arg + ") at time " + ts + " ms at window " + name);
 
         //We received an element at time ts, advance the application time
         time.setAppTime(ts);
 
-        if(active_window == null){
+        if (active_window == null) {
             active_window = scope(ts);
             active_content = cf.create();
         }
 
-        if(active_window.getO()<=ts && active_window.getC()>ts){
+        if (active_window.getO() <= ts && active_window.getC() > ts) {
             active_content.add(arg);
         }
 
         //If the report strategy matches (in this case, onWindowClose) then we need to report the current window and content
-        if(report.report(active_window, active_content, ts, System.currentTimeMillis())){
+        if (report.report(active_window, active_content, ts, System.currentTimeMillis())) {
             reported_window = active_window;
             reported_content = active_content;
             //Adding an evaluation Time Instant to the Time object will tell the system that a computation needs to happen
             time.addEvaluationTimeInstants(new TimeInstant(ts));
         }
 
-        if (active_window.getC()<ts){
+        if (active_window.getC() < ts) {
             active_window = scope(ts);
             active_content = cf.create();
             active_content.add(arg);
@@ -152,7 +147,7 @@ public class CustomTumblingWindow<I, W, R extends Iterable<?>> implements Stream
 
     @Override
     public TimeVarying<R> get() {
-        return new TimeVaryingObject<>(this, RDFUtils.createIRI(name));
+        return new TimeVaryingObject<>(this, name);
     }
 
     @Override
@@ -169,7 +164,7 @@ public class CustomTumblingWindow<I, W, R extends Iterable<?>> implements Stream
     public void evict(long ts) {
         reported_window = null;
         reported_content = null;
-        if(active_window.getC() < ts){
+        if (active_window.getC() < ts) {
             active_window = null;
             reported_content = null;
         }

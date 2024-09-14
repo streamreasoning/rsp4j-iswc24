@@ -12,24 +12,23 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.compose.Union;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnWindowClose;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
-import shared.contentimpl.factories.AccumulatorContentFactory;
-import shared.coordinators.ContinuousProgramImpl;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.CSPARQLStreamToRelationOpImpl;
-import shared.querying.TaskImpl;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +54,6 @@ public class RDFstar_multiwindow {
         report.add(new OnWindowClose());
 
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
         Time instance = new TimeImpl(0);
 
         JenaGraphOrBindings emptyContent = new JenaGraphOrBindings(GraphFactory.createGraphMem());
@@ -71,97 +69,92 @@ public class RDFstar_multiwindow {
         ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_1 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w1",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_2 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w2",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_3 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w3",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_4 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w4",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp_5 =
-                new CSPARQLStreamToRelationOpImpl<>(
+                new HoppingWindowOpImpl<>(
                         tick,
                         instance,
                         "w5",
                         accumulatorContentFactory,
-                        report_grain,
                         report,
                         1000,
                         1000);
 
 
         String prefix = "BASE <http://base/>\n" +
-                "PREFIX ex: <http://www.example.org/ontology#>\n" +
-                "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
-                "PREFIX sosa: <http://www.w3.org/ns/sosa/> ";
+                        "PREFIX ex: <http://www.example.org/ontology#>\n" +
+                        "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
+                        "PREFIX sosa: <http://www.w3.org/ns/sosa/> ";
 
-        String q1 = prefix+"SELECT ?person ?activity WHERE {GRAPH ?g1 {\n" +
-                "            ?o1 a sosa:Observation ;\n" +
-                "              sosa:featureOfInterest ?person ;\n" +
-                "              sosa:madeObservation <sensor/system>;\n" +
-                "              sosa:hasSimpleResult ?activity  .\n" +
-                "        }}GROUP BY ?person ?activity";
-        String q2 = prefix+"SELECT ?partner ?loc WHERE {GRAPH ?g2 {\n" +
-                "            ?o2 a sosa:Observation ;\n" +
-                "              sosa:featureOfInterest ?partner ;\n" +
-                "              sosa:madeObservation <sensor/location/2>;\n" +
-                "              sosa:hasSimpleResult ?loc  .\n" +
-                "        }}GROUP BY ?partner ?loc";
-        String q3 = prefix+"SELECT ?person (AVG(?hr) AS ?avgHr) WHERE {GRAPH ?g3 {\n" +
-                "            ?o3 a sosa:Observation ;\n" +
-                "                sosa:madeObservation <sensor/heart_rate/1>;\n" +
-                "                sosa:featureOfInterest ?person .\n" +
-                "            <<?o3 sosa:hasSimpleResult ?hr>> ex:confidence ?c3 .\n" +
-                "            FILTER(?c3 > 0.95)\n" +
-                "        }} GROUP BY ?person";
-        String q4 = prefix+"SELECT ?person (AVG(?br) AS ?avgBr) WHERE {GRAPH ?g4 {\n" +
-                "            ?o4 a sosa:Observation ;\n" +
-                "            sosa:madeObservation <sensor/breathing_rate/1>;\n" +
-                "                sosa:featureOfInterest ?person .\n" +
-                "            <<?o4 sosa:hasSimpleResult ?br>> ex:confidence ?c4 .\n" +
-                "            FILTER(?c4 > 0.95)\n" +
-                "\n" +
-                "        }}GROUP BY ?person";
-        String q5 = prefix+"SELECT ?person (AVG(?ox) AS ?avgOx) WHERE {GRAPH ?g5 {\n" +
-                "            ?o5 a sosa:Observation ;\n" +
-                "                sosa:madeObservation <sensor/oxygen/1>;\n" +
-                "                sosa:featureOfInterest ?person .\n" +
-                "            <<?o5 sosa:hasSimpleResult ?ox>> ex:confidence ?c5 .\n" +
-                "            FILTER(?c5 > 0.95)\n" +
-                "\n" +
-                "        }}GROUP BY ?person";
+        String q1 = prefix + "SELECT ?person ?activity WHERE {GRAPH ?g1 {\n" +
+                    "            ?o1 a sosa:Observation ;\n" +
+                    "              sosa:featureOfInterest ?person ;\n" +
+                    "              sosa:madeObservation <sensor/system>;\n" +
+                    "              sosa:hasSimpleResult ?activity  .\n" +
+                    "        }}GROUP BY ?person ?activity";
+        String q2 = prefix + "SELECT ?partner ?loc WHERE {GRAPH ?g2 {\n" +
+                    "            ?o2 a sosa:Observation ;\n" +
+                    "              sosa:featureOfInterest ?partner ;\n" +
+                    "              sosa:madeObservation <sensor/location/2>;\n" +
+                    "              sosa:hasSimpleResult ?loc  .\n" +
+                    "        }}GROUP BY ?partner ?loc";
+        String q3 = prefix + "SELECT ?person (AVG(?hr) AS ?avgHr) WHERE {GRAPH ?g3 {\n" +
+                    "            ?o3 a sosa:Observation ;\n" +
+                    "                sosa:madeObservation <sensor/heart_rate/1>;\n" +
+                    "                sosa:featureOfInterest ?person .\n" +
+                    "            <<?o3 sosa:hasSimpleResult ?hr>> ex:confidence ?c3 .\n" +
+                    "            FILTER(?c3 > 0.95)\n" +
+                    "        }} GROUP BY ?person";
+        String q4 = prefix + "SELECT ?person (AVG(?br) AS ?avgBr) WHERE {GRAPH ?g4 {\n" +
+                    "            ?o4 a sosa:Observation ;\n" +
+                    "            sosa:madeObservation <sensor/breathing_rate/1>;\n" +
+                    "                sosa:featureOfInterest ?person .\n" +
+                    "            <<?o4 sosa:hasSimpleResult ?br>> ex:confidence ?c4 .\n" +
+                    "            FILTER(?c4 > 0.95)\n" +
+                    "\n" +
+                    "        }}GROUP BY ?person";
+        String q5 = prefix + "SELECT ?person (AVG(?ox) AS ?avgOx) WHERE {GRAPH ?g5 {\n" +
+                    "            ?o5 a sosa:Observation ;\n" +
+                    "                sosa:madeObservation <sensor/oxygen/1>;\n" +
+                    "                sosa:featureOfInterest ?person .\n" +
+                    "            <<?o5 sosa:hasSimpleResult ?ox>> ex:confidence ?c5 .\n" +
+                    "            FILTER(?c5 > 0.95)\n" +
+                    "\n" +
+                    "        }}GROUP BY ?person";
 
         RelationToRelationOperator<JenaGraphOrBindings> r2rOp_1 = new FullQueryUnaryJena(q1, Collections.singletonList(s2rOp_1.getName()), "partial_1");
         RelationToRelationOperator<JenaGraphOrBindings> r2rOp_2 = new FullQueryUnaryJena(q2, Collections.singletonList(s2rOp_2.getName()), "partial_2");
@@ -173,7 +166,6 @@ public class RDFstar_multiwindow {
         RelationToRelationOperator<JenaGraphOrBindings> r2rJoin_3 = new Join(List.of("join_2", "partial_4"), "join_3");
         RelationToRelationOperator<JenaGraphOrBindings> r2rJoin_4 = new Join(List.of("join_3", "partial_5"), "join_4");
         RelationToRelationOperator<JenaGraphOrBindings> r2rFinal = new JoinRSPQLstarQueryJena(Collections.singletonList("join_4"), "final");
-
 
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();

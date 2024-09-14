@@ -1,6 +1,5 @@
 package graph.jena.stream;
 
-import org.apache.commons.rdf.api.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphMemFactory;
 import org.apache.jena.graph.Node;
@@ -9,8 +8,7 @@ import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
-import org.streamreasoning.rsp4j.api.RDFUtils;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -31,11 +29,8 @@ public class JenaStreamGenerator {
     private AtomicLong streamIndexCounter;
 
     private String prefixes;
-    private String [] fileNames = {"/activity.trig", "/location.trig", "/heart.trig", "/breathing.trig", "/oxygen.trig"};
+    private String[] fileNames = {"/activity.trig", "/location.trig", "/heart.trig", "/breathing.trig", "/oxygen.trig"};
     private List<Scanner> scanners = new ArrayList<>();
-
-
-
 
 
     public JenaStreamGenerator() {
@@ -44,12 +39,13 @@ public class JenaStreamGenerator {
         this.isStreaming = new AtomicBoolean(false);
         randomGenerator = new Random(1336);
         try {
-            for(int i = 0; i< fileNames.length; i++){
+            for (int i = 0; i < fileNames.length; i++) {
                 scanners.add(new Scanner(new File(JenaStreamGenerator.class.getResource(fileNames[i]).getPath())));
                 //Read prefixes from all files
                 prefixes = scanners.get(i).nextLine();
             }
-        }catch(FileNotFoundException ignored){}
+        } catch (FileNotFoundException ignored) {
+        }
 
     }
 
@@ -90,24 +86,21 @@ public class JenaStreamGenerator {
     }
 
     private void generateDataAndAddToStream(DataStream<Graph> stream, long ts) {
-        RDF instance = RDFUtils.getInstance();
         Graph graph = GraphMemFactory.createGraphMem();
 
         Node p = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 
-        if(stream.getName().equals("http://test/stream1")) {
+        if (stream.getName().equals("http://test/stream1")) {
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + selectRandomColor()));
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + "Black"));
             stream.put(graph, ts);
-        }
-        else if(stream.getName().equals("http://test/stream2")){
+        } else if (stream.getName().equals("http://test/stream2")) {
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + randomGenerator.nextInt(10)));
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + "0"));
             stream.put(graph, ts);
-        }
-        else if(stream.getName().equals("http://test/RDFstar")){
+        } else if (stream.getName().equals("http://test/RDFstar")) {
 
-            for(Scanner s : scanners) {
+            for (Scanner s : scanners) {
                 String data = s.nextLine();
                 Graph tmp = GraphMemFactory.createGraphMem();
                 DatasetGraph ds = new DatasetGraphInMemory();

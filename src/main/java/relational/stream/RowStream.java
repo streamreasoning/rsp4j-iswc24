@@ -2,8 +2,8 @@ package relational.stream;
 
 import org.apache.jena.graph.Graph;
 import org.javatuples.Quartet;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.Consumer;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.Consumer;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 import tech.tablesaw.api.Row;
 
 import java.util.ArrayList;

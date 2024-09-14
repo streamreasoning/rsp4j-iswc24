@@ -1,27 +1,26 @@
 package relational.examples;
 
 import org.javatuples.Tuple;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import shared.coordinators.ContinuousProgramImpl;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import shared.querying.TaskImpl;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnStateReady;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnStateReady;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
 import relational.operatorsimpl.r2s.RelationToStreamjtablesawImpl;
 import relational.sds.SDSjtablesaw;
 import relational.stream.RowStream;
 import relational.stream.RowStreamGenerator;
-import shared.contentimpl.factories.StatefulContentFactory;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.FrameOp;
+import org.streamreasoning.polyflow.base.contentimpl.factories.StatefulContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.FrameOp;
 import tech.tablesaw.api.*;
 
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ public class polyflow_AggregateFrame {
         report.add(new OnStateReady());
 
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
         Time instance = new TimeImpl(0);
         Table emptyContent = Table.create();
 
@@ -121,7 +119,6 @@ public class polyflow_AggregateFrame {
                         instance,
                         "w1",
                         statefulContentFactory,
-                        report_grain,
                         report);
 
 

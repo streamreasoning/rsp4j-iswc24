@@ -8,10 +8,9 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.vocabulary.RDF;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.result.SolutionMapping;
-import org.streamreasoning.rsp4j.api.sds.SDS;
-import org.streamreasoning.rsp4j.api.sds.timevarying.TimeVarying;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.sds.SDS;
+import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -57,10 +56,6 @@ public class R2RUpwardExtension implements RelationToRelationOperator<JenaGraphO
 
 
     public TimeVarying<Collection<Graph>> apply(SDS<Graph> sds) {
-        return null;
-    }
-
-    public SolutionMapping<Graph> createSolutionMapping(Graph result) {
         return null;
     }
 

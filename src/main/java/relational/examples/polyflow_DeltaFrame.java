@@ -1,57 +1,61 @@
 package relational.examples;
 
 import org.javatuples.Tuple;
-import org.streamreasoning.rsp4j.api.coordinators.ContinuousProgram;
-import shared.coordinators.ContinuousProgramImpl;
-import org.streamreasoning.rsp4j.api.enums.ReportGrain;
-import org.streamreasoning.rsp4j.api.enums.Tick;
-import org.streamreasoning.rsp4j.api.operators.r2s.RelationToStreamOperator;
-import org.streamreasoning.rsp4j.api.operators.s2r.execution.assigner.StreamToRelationOperator;
-import org.streamreasoning.rsp4j.api.querying.Task;
-import shared.querying.TaskImpl;
-import org.streamreasoning.rsp4j.api.secret.report.Report;
-import org.streamreasoning.rsp4j.api.secret.report.ReportImpl;
-import org.streamreasoning.rsp4j.api.secret.report.strategies.OnStateReady;
-import org.streamreasoning.rsp4j.api.secret.time.Time;
-import org.streamreasoning.rsp4j.api.secret.time.TimeImpl;
-import org.streamreasoning.rsp4j.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.api.enums.Tick;
+import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
+import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
+import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
+import org.streamreasoning.polyflow.api.processing.Task;
+import org.streamreasoning.polyflow.api.secret.report.Report;
+import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
+import org.streamreasoning.polyflow.api.secret.report.strategies.OnStateReady;
+import org.streamreasoning.polyflow.api.secret.time.Time;
+import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
+import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.polyflow.base.contentimpl.factories.StatefulContentFactory;
+import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.s2r.FrameOp;
+import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.TaskImpl;
 import relational.operatorsimpl.r2s.RelationToStreamjtablesawImpl;
 import relational.sds.SDSjtablesaw;
 import relational.stream.RowStream;
 import relational.stream.RowStreamGenerator;
-import shared.contentimpl.factories.StatefulContentFactory;
-import shared.operatorsimpl.r2r.DAG.DAGImpl;
-import shared.operatorsimpl.s2r.FrameOp;
 import tech.tablesaw.api.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class polyflow_DeltaFrame {
-    public static void main(String [] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
-        class InnerState{
+        class InnerState {
             private int firstElement;
             private int lastElement;
 
             private boolean hasFirstElement = false;
 
             private boolean hasLastElement = false;
-            public void setFirstElement(int element){
+
+            public void setFirstElement(int element) {
                 this.firstElement = element;
                 this.hasFirstElement = true;
             }
-            public void setLastElement(int element){
+
+            public void setLastElement(int element) {
                 this.lastElement = element;
                 this.hasLastElement = true;
             }
-            public boolean hasFirstElement(){
+
+            public boolean hasFirstElement() {
                 return this.hasFirstElement;
             }
-            public boolean hasLatElement(){
+
+            public boolean hasLatElement() {
                 return this.hasLastElement;
             }
-            public int getDiff(){
+
+            public int getDiff() {
                 return lastElement - firstElement;
             }
         }
@@ -67,78 +71,69 @@ public class polyflow_DeltaFrame {
         report.add(new OnStateReady());
 
         Tick tick = Tick.TIME_DRIVEN;
-        ReportGrain report_grain = ReportGrain.SINGLE;
         Time instance = new TimeImpl(0);
         Table emptyContent = Table.create();
 
         StatefulContentFactory<Tuple, Tuple, Table> statefulContentFactory = new StatefulContentFactory<>(
-                ()-> new InnerState(),
-                (t, s)-> {
-                    InnerState state = (InnerState)s;
-                    if(!state.hasFirstElement()){
-                        state.setFirstElement((Integer)t.getValue(2));
-                    }
-                    else{
-                        state.setLastElement((Integer)t.getValue(2));
+                () -> new InnerState(),
+                (t, s) -> {
+                    InnerState state = (InnerState) s;
+                    if (!state.hasFirstElement()) {
+                        state.setFirstElement((Integer) t.getValue(2));
+                    } else {
+                        state.setLastElement((Integer) t.getValue(2));
                     }
                     return state;
-                    },
-                (s)->{
-                    InnerState state = (InnerState)s;
-                    if(!state.hasLatElement())
+                },
+                (s) -> {
+                    InnerState state = (InnerState) s;
+                    if (!state.hasLatElement())
                         return false;
                     return state.getDiff() > 3;
                 },
-                t->t,
-                (t)->{
+                t -> t,
+                (t) -> {
                     Table r = Table.create();
 
-                    for(int i = 0; i<t.getSize(); i++){
-                        if(t.getValue(i) instanceof Long){
-                            String columnName = "c"+ (i+1);
-                            if(!r.containsColumn(columnName)) {
+                    for (int i = 0; i < t.getSize(); i++) {
+                        if (t.getValue(i) instanceof Long) {
+                            String columnName = "c" + (i + 1);
+                            if (!r.containsColumn(columnName)) {
                                 LongColumn lc = LongColumn.create(columnName);
                                 lc.append((Long) t.getValue(i));
                                 r.addColumns(lc);
-                            }
-                            else{
+                            } else {
                                 LongColumn lc = (LongColumn) r.column(columnName);
                                 lc.append((Long) t.getValue(i));
                             }
 
-                        }
-                        else if(t.getValue(i) instanceof Integer){
-                            String columnName = "c"+ (i+1);
-                            if(!r.containsColumn(columnName)) {
+                        } else if (t.getValue(i) instanceof Integer) {
+                            String columnName = "c" + (i + 1);
+                            if (!r.containsColumn(columnName)) {
                                 IntColumn lc = IntColumn.create(columnName);
                                 lc.append((Integer) t.getValue(i));
                                 r.addColumns(lc);
-                            }
-                            else{
+                            } else {
                                 IntColumn lc = (IntColumn) r.column(columnName);
                                 lc.append((Integer) t.getValue(i));
                             }
-                        }
-                        else if(t.getValue(i) instanceof Boolean){
-                            String columnName = "c"+ (i+1);
-                            if(!r.containsColumn(columnName)) {
+                        } else if (t.getValue(i) instanceof Boolean) {
+                            String columnName = "c" + (i + 1);
+                            if (!r.containsColumn(columnName)) {
                                 BooleanColumn lc = BooleanColumn.create(columnName);
                                 lc.append((Boolean) t.getValue(i));
                                 r.addColumns(lc);
-                            }
-                            else{
+                            } else {
                                 BooleanColumn lc = (BooleanColumn) r.column(columnName);
                                 lc.append((Boolean) t.getValue(i));
                             }
-                        }
-                        else if(t.getValue(i) instanceof String){
-                            String columnName = "c"+ (i+1);
-                            if(!r.containsColumn(columnName)) {
+                        } else if (t.getValue(i) instanceof String) {
+                            String columnName = "c" + (i + 1);
+                            if (!r.containsColumn(columnName)) {
                                 StringColumn lc = StringColumn.create(columnName);
                                 lc.append((String) t.getValue(i));
                                 r.addColumns(lc);
-                            }
-                            else{
+                            } else {
                                 StringColumn lc = (StringColumn) r.column(columnName);
                                 lc.append((String) t.getValue(i));
                             }
@@ -146,7 +141,7 @@ public class polyflow_DeltaFrame {
                     }
                     return r;
                 },
-                (r1, r2)->r1.isEmpty()? r2:r1.append(r2),
+                (r1, r2) -> r1.isEmpty() ? r2 : r1.append(r2),
                 emptyContent
 
         );
@@ -160,10 +155,7 @@ public class polyflow_DeltaFrame {
                         instance,
                         "w1",
                         statefulContentFactory,
-                        report_grain,
                         report);
-
-
 
 
         RelationToStreamOperator<Table, Tuple> r2sOp = new RelationToStreamjtablesawImpl();
@@ -185,7 +177,7 @@ public class polyflow_DeltaFrame {
 
         cp.buildTask(task, inputStreams, outputStreams);
 
-        outStream.addConsumer((out, el, ts)-> System.out.println(el + " @ " + ts));
+        outStream.addConsumer((out, el, ts) -> System.out.println(el + " @ " + ts));
 
         generator.startStreaming();
 

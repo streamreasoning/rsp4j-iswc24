@@ -9,14 +9,14 @@ import org.apache.jena.sparql.core.DatasetImpl;
 import org.apache.jena.sparql.core.ResultBinding;
 import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.streamreasoning.rsp4j.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FullQueryUnaryJena implements RelationToRelationOperator<JenaGraphOrBindings> {
 
-
+    private Query q;
     private String query;
 
     private List<String> tvgNames;
@@ -27,14 +27,21 @@ public class FullQueryUnaryJena implements RelationToRelationOperator<JenaGraphO
         this.query = query;
         this.tvgNames = tvgNames;
         this.resName = resName;
+        this.q = QueryFactory.create(query);
+    }
 
+    public FullQueryUnaryJena(Query query, List<String> tvgNames, String resName) {
+        this.tvgNames = tvgNames;
+        this.resName = resName;
+        this.q = query;
+        this.query = query.toString();
     }
 
     @Override
     public JenaGraphOrBindings eval(List<JenaGraphOrBindings> datasets) {
 
         JenaGraphOrBindings dataset = datasets.get(0);
-        Query q = QueryFactory.create(query);
+
         q.getProjectVars();
         Node aDefault = NodeFactory.createURI("default");
         DatasetGraph dg = new DatasetGraphInMemory();
