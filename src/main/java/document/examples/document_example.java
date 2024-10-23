@@ -72,7 +72,7 @@ public class document_example {
         RelationToRelationOperator<DocumentCollection> r2rOp = new RelationToRelationDocumentSelection(List.of("w1"), "partial_1");
         RelationToStreamOperator<DocumentCollection, String> r2sOp = new RelationToStreamDocument();
 
-        Task<String, String, DocumentCollection, String> task = new TaskImpl<>();
+        Task<String, String, DocumentCollection, String> task = new TaskImpl<>("1");
         task = task.addS2ROperator(s2rOp_1, inputStream_1)
                 .addR2ROperator(r2rOp)
                 .addR2SOperator(r2sOp)

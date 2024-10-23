@@ -2,26 +2,24 @@ package relational.examples;
 
 import org.javatuples.Tuple;
 import org.streamreasoning.polyflow.api.enums.Tick;
-import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
 import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
 import org.streamreasoning.polyflow.api.processing.ContinuousProgram;
 import org.streamreasoning.polyflow.api.processing.Task;
-import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 import org.streamreasoning.polyflow.api.secret.report.Report;
 import org.streamreasoning.polyflow.api.secret.report.ReportImpl;
 import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
 import org.streamreasoning.polyflow.api.secret.time.Time;
 import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
 import org.streamreasoning.polyflow.api.stream.data.DataStream;
-import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
+import static tech.tablesaw.aggregate.AggregateFunctions.*;
+
+import org.streamreasoning.polyflow.base.contentimpl.factories.AggregateContentFactory;
+import org.streamreasoning.polyflow.base.contentimpl.factories.ContainerContentFactory;
 import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
 import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
-import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
+import org.streamreasoning.polyflow.base.processing.ParallelContinuousProgram;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
-import relational.operatorsimpl.r2r.CustomRelationalQuery;
-import relational.operatorsimpl.r2r.R2RjtablesawJoin;
-import relational.operatorsimpl.r2r.R2RjtablesawSelection;
 import relational.operatorsimpl.r2s.RelationToStreamjtablesawImpl;
 import relational.sds.SDSjtablesaw;
 import relational.stream.RowStream;
@@ -29,17 +27,14 @@ import relational.stream.RowStreamGenerator;
 import tech.tablesaw.api.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class polyflow_LazyEvaluation {
-
+public class keyval_partition{
     public static void main(String[] args) throws InterruptedException {
 
         RowStreamGenerator generator = new RowStreamGenerator();
 
         DataStream<Tuple> inputStream_1 = generator.getStream("http://test/stream1");
-        DataStream<Tuple> inputStream_2 = generator.getStream("http://test/stream2");
         // define output stream
         DataStream<Tuple> outStream = new RowStream("out");
 
@@ -48,11 +43,14 @@ public class polyflow_LazyEvaluation {
         report.add(new OnWindowClose());
 
         Tick tick = Tick.TIME_DRIVEN;
-        Time instance = new TimeImpl(0);
+        Time instance_1 = new TimeImpl(0);
         Time instance_2 = new TimeImpl(0);
+        Time instance_3 = new TimeImpl(0);
+
+
         Table emptyContent = Table.create();
 
-        AccumulatorContentFactory<Tuple, Tuple, Table> accumulatorContentFactory = new AccumulatorContentFactory<>(
+        AggregateContentFactory<Tuple, Tuple, Table> aggregateContentFactory = new AggregateContentFactory<>(
                 t -> t,
                 (t) -> {
                     Table r = Table.create();
@@ -104,19 +102,26 @@ public class polyflow_LazyEvaluation {
                     return r;
                 },
                 (r1, r2) -> r1.isEmpty() ? r2 : r1.append(r2),
+                (table) -> table.summarize("c3", mean, max, min).by("c1"),
                 emptyContent
-
         );
 
+        Table emptyContent2 = Table.create();
+        ContainerContentFactory<Tuple, Tuple, Table, Long> containerContentFactory = new ContainerContentFactory<>(
+                i-> (Long)i.getValue(0),
+                w->null,
+                r->null,
+                (t1, t2)-> t1.isEmpty()?t2: t1.append(t2),
+                emptyContent2,
+                aggregateContentFactory);
 
-        ContinuousProgram<Tuple, Tuple, Table, Tuple> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Tuple, Tuple, Table> s2rOp_1 =
                 new HoppingWindowOpImpl<>(
                         tick,
-                        instance,
+                        instance_1,
                         "w1",
-                        accumulatorContentFactory,
+                        containerContentFactory,
                         report,
                         1000,
                         1000);
@@ -124,109 +129,66 @@ public class polyflow_LazyEvaluation {
                 new HoppingWindowOpImpl<>(
                         tick,
                         instance_2,
-                        "w2",
-                        accumulatorContentFactory,
+                        "w1",
+                        containerContentFactory,
+                        report,
+                        1000,
+                        1000);
+        StreamToRelationOperator<Tuple, Tuple, Table> s2rOp_3 =
+                new HoppingWindowOpImpl<>(
+                        tick,
+                        instance_3,
+                        "w1",
+                        containerContentFactory,
                         report,
                         1000,
                         1000);
 
-        String materializedViewName = "materialized";
-        List<String> s2r_names = new ArrayList<>();
-        s2r_names.add(materializedViewName);
-        s2r_names.add(s2rOp_2.getName());
-
-        CustomRelationalQuery selection = new CustomRelationalQuery(4, "c3");
-        CustomRelationalQuery join = new CustomRelationalQuery("c1");
-
-        RelationToRelationOperator<Table> r2rOp = new R2RjtablesawSelection(selection, Collections.singletonList(s2rOp_1.getName()), "materialized");
-        RelationToRelationOperator<Table> r2rBinaryOp = new R2RjtablesawJoin(join, s2r_names, "partial_2");
 
         RelationToStreamOperator<Table, Tuple> r2sOp = new RelationToStreamjtablesawImpl();
 
-
-        Task<Tuple, Tuple, Table, Tuple> materializedView = new TaskImpl<>("1");
-        materializedView = materializedView
-                .addS2ROperator(s2rOp_1, inputStream_1)
-                .addR2ROperator(r2rOp)
+        Task<Tuple, Tuple, Table, Tuple> task_1 = new TaskImpl<>("1");
+        task_1 = task_1.addS2ROperator(s2rOp_1, inputStream_1)
+                .addR2SOperator(r2sOp)
                 .addSDS(new SDSjtablesaw())
                 .addDAG(new DAGImpl<>())
-                .addTime(instance);
-        materializedView.initialize();
+                .addTime(instance_1);
+        task_1.initialize();
 
-        Task<Tuple, Tuple, Table, Tuple> task = new TaskImpl<>("2");
-        task = task
-                .addS2ROperator(s2rOp_2, inputStream_2)
-                .addR2ROperator(r2rBinaryOp)
+        Task<Tuple, Tuple, Table, Tuple> task_2 = new TaskImpl<>("2");
+        task_2 = task_2.addS2ROperator(s2rOp_2, inputStream_1)
                 .addR2SOperator(r2sOp)
                 .addSDS(new SDSjtablesaw())
                 .addDAG(new DAGImpl<>())
                 .addTime(instance_2);
+        task_2.initialize();
 
-        //Add the materialized view to the interested task
-
-        TimeVarying<Table> view = materializedView.apply();
-        task.getSDS().add(view);
-
-        task.initialize();
+        Task<Tuple, Tuple, Table, Tuple> task_3 = new TaskImpl<>("3");
+        task_3 = task_3.addS2ROperator(s2rOp_3, inputStream_1)
+                .addR2SOperator(r2sOp)
+                .addSDS(new SDSjtablesaw())
+                .addDAG(new DAGImpl<>())
+                .addTime(instance_3);
+        task_3.initialize();
 
         List<DataStream<Tuple>> inputStreams = new ArrayList<>();
         inputStreams.add(inputStream_1);
-        inputStreams.add(inputStream_2);
 
 
         List<DataStream<Tuple>> outputStreams = new ArrayList<>();
         outputStreams.add(outStream);
 
-        cp.buildView(materializedView, Collections.singletonList(inputStream_1));
-        cp.buildTask(task, Collections.singletonList(inputStream_2), outputStreams);
+        ContinuousProgram<Tuple, Tuple, Table, Tuple> cp = new ParallelContinuousProgram<>(i-> (Long)i.getValue(0), 3);
+
+        cp.buildTask(task_1, inputStreams, outputStreams);
+        cp.buildTask(task_2, inputStreams, outputStreams);
+        cp.buildTask(task_3, inputStreams, outputStreams);
+
+
 
         outStream.addConsumer((out, el, ts) -> System.out.println(el + " @ " + ts));
 
         generator.startStreaming();
-        //Thread.sleep(20_000);
-        //generator.stopStreaming();
-
-//        cp.notify(inputStream_1, null, System.currentTimeMillis());
-
-        Task<Tuple, Tuple, Table, Tuple> finaltask = task;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-               /* try {
-                    System.out.println("going to sleep");
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                System.out.println("awake");
-
-                view.materialize(System.currentTimeMillis());
-                Table rows1 = view.get();
-                rows1.forEach(System.out::println);
-*/
-                try {
-                    System.out.println("going to sleep");
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                System.out.println("awake");
-
-                /*RelationToRelationOperator<Table> r2rOp2 = new R2RjtablesawSelection(selection, Collections.singletonList(s2rOp_1.getName()), "ricstuff");
-
-                TimeVarying<Table> apply = r2rOp2.apply(view);
-
-                apply.materialize(System.currentTimeMillis());
-                Table rows = apply.get();
-                rows.forEach(System.out::println);*/
-                System.out.println(finaltask.computeLazy(4583));
-
-
-            }
-        }).start();
 
     }
-
-
 }

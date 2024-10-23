@@ -78,7 +78,7 @@ public class polyflowExample {
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
-        Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
+        Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>("1");
         task = task.addS2ROperator(s2rOp, inputStream)
                 .addR2ROperator(r2rOp1)
                 .addR2ROperator(r2rOp2)

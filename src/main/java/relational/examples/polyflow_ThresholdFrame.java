@@ -116,7 +116,7 @@ public class polyflow_ThresholdFrame {
 
         RelationToStreamOperator<Table, Tuple> r2sOp = new RelationToStreamjtablesawImpl();
 
-        Task<Tuple, Tuple, Table, Tuple> task = new TaskImpl<>();
+        Task<Tuple, Tuple, Table, Tuple> task = new TaskImpl<>("1");
         task = task.addS2ROperator(s2rOp_1, inputStream_1)
                 .addR2SOperator(r2sOp)
                 .addSDS(new SDSjtablesaw())

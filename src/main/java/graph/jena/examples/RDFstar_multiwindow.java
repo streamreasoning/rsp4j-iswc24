@@ -170,7 +170,7 @@ public class RDFstar_multiwindow {
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
-        Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
+        Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>("1");
         task = task.addS2ROperator(s2rOp_1, activity)
                 .addS2ROperator(s2rOp_2, location)
                 .addS2ROperator(s2rOp_3, heart)

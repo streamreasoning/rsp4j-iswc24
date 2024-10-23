@@ -133,7 +133,7 @@ public class FruitAdvancedGuide {
         /*------------Task definition------------*/
 
         //Define the Tasks, each of which represent a query
-        Task<Fruit, Fruit, FruitBasket, Fruit> task = new TaskImpl<>();
+        Task<Fruit, Fruit, FruitBasket, Fruit> task = new TaskImpl<>("1");
         task = task.addS2ROperator(fruit_s2r_one, inputStreamFruit_one)
                 .addS2ROperator(fruit_s2r_two, inputStreamFruit_two)
                 .addR2ROperator(r2r_filter_underripe)

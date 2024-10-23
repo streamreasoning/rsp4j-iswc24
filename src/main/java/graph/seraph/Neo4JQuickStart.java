@@ -42,7 +42,7 @@ import java.util.List;
  *
  */
 
-public class Noe4JQuickStart {
+public class Neo4JQuickStart {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -117,7 +117,7 @@ public class Noe4JQuickStart {
         /*------------Task definition------------*/
 
         //Define the Tasks, each of which represent a query
-        Task<PGraph, PGraph, PGraphOrResult, Result> task = new TaskImpl<>();
+        Task<PGraph, PGraph, PGraphOrResult, Result> task = new TaskImpl<>("1");
         task = task.addS2ROperator(s2rOp_one, inputStreamColors)
 //                .addS2ROperator(s2rOp_two, inputStreamNumbers)
                 .addR2ROperator(r2rOp1)
