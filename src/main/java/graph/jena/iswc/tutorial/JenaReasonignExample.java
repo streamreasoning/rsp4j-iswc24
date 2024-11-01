@@ -1,14 +1,13 @@
-package graph.jena.examples;
+package graph.jena.iswc.tutorial;
 
 import graph.jena.datatypes.JenaGraphOrBindings;
-import graph.jena.operatorsimpl.r2r.jena.FullQueryBinaryJena;
 import graph.jena.operatorsimpl.r2r.jena.FullQueryUnaryJena;
+import graph.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
 import graph.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import graph.jena.sds.SDSJena;
 import graph.jena.stream.JenaBindingStream;
 import graph.jena.stream.JenaStreamGenerator;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.compose.Union;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.streamreasoning.polyflow.api.enums.Tick;
@@ -33,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class polyflowExample {
+public class JenaReasonignExample {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -72,8 +71,8 @@ public class polyflowExample {
                         1000,
                         1000);
 
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_1");
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_2");
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning("SELECT * WHERE {GRAPH ?g { ?s a ?t }}", Collections.singletonList(s2rOp.getName()), "partial_1");
+//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g { ?s ?p ?o } }", Collections.singletonList(s2rOp.getName()), "partial_2");
 //        RelationToRelationOperator<JenaGraphOrBindings> r2rOp3 = new FullQueryBinaryJena("", List.of("partial_1", "partial_2"), "partial_3");
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
@@ -81,7 +80,7 @@ public class polyflowExample {
         Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
         task = task.addS2ROperator(s2rOp, inputStream)
                 .addR2ROperator(r2rOp1)
-                .addR2ROperator(r2rOp2)
+//                .addR2ROperator(r2rOp2)
 //                .addR2ROperator(r2rOp3)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())

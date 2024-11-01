@@ -3,10 +3,11 @@ package relational.sds;
 
 import org.streamreasoning.polyflow.api.sds.SDS;
 import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
-import relational.datatypes.TableWrapper;
 import tech.tablesaw.api.Table;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class SDSjtablesaw implements SDS<Table> {
@@ -31,7 +32,7 @@ public class SDSjtablesaw implements SDS<Table> {
     @Override
     public SDS<Table> materialize(long ts) {
 
-        for(TimeVarying<Table> tvg : tvgs){
+        for (TimeVarying<Table> tvg : tvgs) {
             tvg.materialize(ts);
         }
         return this;
@@ -39,6 +40,6 @@ public class SDSjtablesaw implements SDS<Table> {
 
     @Override
     public Stream<Table> toStream() {
-        return null;
+        return tvgs.stream().map(TimeVarying::get);
     }
 }

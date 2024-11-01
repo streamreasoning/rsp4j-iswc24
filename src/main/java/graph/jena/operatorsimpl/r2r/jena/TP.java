@@ -14,11 +14,8 @@ import java.util.function.UnaryOperator;
 
 public class TP implements UnaryOperator<JenaGraphOrBindings>, RelationToRelationOperator<JenaGraphOrBindings> {
 
-
     private OpTriple bgp;
-
     private List<String> tvgNames;
-
     private String unaryOpName;
 
     public TP(OpTriple bgp, List<String> tvgNames, String unaryOpName) {
@@ -29,7 +26,14 @@ public class TP implements UnaryOperator<JenaGraphOrBindings>, RelationToRelatio
     }
 
     public JenaGraphOrBindings eval(List<JenaGraphOrBindings> datasets) {
-        return null;
+        QueryIterator exec = Algebra.exec(bgp, datasets.get(0).getContent());
+        List<Binding> res = new ArrayList<>();
+        while (exec.hasNext()) {
+            res.add(exec.next());
+        }
+        JenaGraphOrBindings bindings = new JenaGraphOrBindings();
+        bindings.setResult(res);
+        return bindings;
     }
 
 
@@ -38,26 +42,7 @@ public class TP implements UnaryOperator<JenaGraphOrBindings>, RelationToRelatio
     }
 
     public String getResName() {
-        return null;
-    }
-
-
-    public String getUnaryOpName() {
         return unaryOpName;
-    }
-
-    public JenaGraphOrBindings eval(JenaGraphOrBindings dataset) {
-
-        QueryIterator exec = Algebra.exec(bgp, dataset.getContent());
-
-        List<Binding> res = new ArrayList<>();
-
-        while (exec.hasNext()) {
-            res.add(exec.next());
-        }
-
-        dataset.setResult(res);
-        return dataset;
     }
 
     @Override

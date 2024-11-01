@@ -1,14 +1,20 @@
-package graph.jena.examples;
+package graph.jena.iswc.tutorial;
 
 import graph.jena.datatypes.JenaGraphOrBindings;
-import graph.jena.operatorsimpl.r2r.jena.FullQueryBinaryJena;
-import graph.jena.operatorsimpl.r2r.jena.FullQueryUnaryJena;
+import graph.jena.operatorsimpl.r2r.csprite.HierarchySchema;
+import graph.jena.operatorsimpl.r2r.csprite.R2RUpwardExtension;
+import graph.jena.operatorsimpl.r2r.csprite.UpwardExtension;
+import graph.jena.operatorsimpl.r2r.jena.TP;
 import graph.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import graph.jena.sds.SDSJena;
 import graph.jena.stream.JenaBindingStream;
 import graph.jena.stream.JenaStreamGenerator;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.compose.Union;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.algebra.op.OpTriple;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.streamreasoning.polyflow.api.enums.Tick;
@@ -30,10 +36,9 @@ import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class polyflowExample {
+public class CspriteExample {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -59,7 +64,6 @@ public class polyflowExample {
                 emptyContent
         );
 
-
         ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp =
@@ -69,12 +73,13 @@ public class polyflowExample {
                         "w1",
                         accumulatorContentFactory,
                         report,
-                        1000,
-                        1000);
+                        2000,
+                        2000);
 
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_1");
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_2");
-//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp3 = new FullQueryBinaryJena("", List.of("partial_1", "partial_2"), "partial_3");
+
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new R2RUpwardExtension(new UpwardExtension(getHierarchySchema().getSchema()), List.of(s2rOp.getName()), "partial_1");
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new TP(getTriple(), List.of("partial_1"), "partial_2");
+//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE { GRAPH ?g {?s ?p ?o } }", List.of("partial_1"), "partial_2");
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
@@ -82,7 +87,6 @@ public class polyflowExample {
         task = task.addS2ROperator(s2rOp, inputStream)
                 .addR2ROperator(r2rOp1)
                 .addR2ROperator(r2rOp2)
-//                .addR2ROperator(r2rOp3)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())
                 .addSDS(new SDSJena())
@@ -91,7 +95,6 @@ public class polyflowExample {
 
         List<DataStream<Graph>> inputStreams = new ArrayList<>();
         inputStreams.add(inputStream);
-
 
         List<DataStream<Binding>> outputStreams = new ArrayList<>();
         outputStreams.add(outStream);
@@ -103,5 +106,23 @@ public class polyflowExample {
         generator.startStreaming();
         Thread.sleep(20_000);
         generator.stopStreaming();
+    }
+
+    private static OpTriple getTriple() {
+        Node s = Var.alloc("superColor");
+        Node p = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+        Node o = NodeFactory.createURI(JenaStreamGenerator.PREFIX + "Super");
+        return new OpTriple(Triple.create(s, p, o));
+    }
+
+    private static HierarchySchema getHierarchySchema() {
+        HierarchySchema hierarchySchema = new HierarchySchema();
+        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "Black", JenaStreamGenerator.PREFIX + "SuperBlack");
+        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "White", JenaStreamGenerator.PREFIX + "SuperWhite");
+        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "Gray", JenaStreamGenerator.PREFIX + "SuperGray");
+        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "SuperWhite", JenaStreamGenerator.PREFIX + "Super");
+        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "SuperBlack", JenaStreamGenerator.PREFIX + "Super");
+        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "SuperGray", JenaStreamGenerator.PREFIX + "Super");
+        return hierarchySchema;
     }
 }

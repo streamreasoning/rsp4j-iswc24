@@ -15,24 +15,19 @@ import org.streamreasoning.polyflow.api.sds.timevarying.TimeVarying;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class R2RUpwardExtension implements RelationToRelationOperator<JenaGraphOrBindings> {
 
-
     private final Node RDFTYPE = RDF.type.asNode();
+    private final List<String> tvgNames;
+    private final String unaryOpName;
     private UpwardExtension extension;
 
-
-    public R2RUpwardExtension(Map<String, List<String>> schema) {
-        extension = new UpwardExtension(schema);
-
-    }
-
-    public R2RUpwardExtension(UpwardExtension extension) {
+    public R2RUpwardExtension(UpwardExtension extension, List<String> tvgNames, String unaryOpName) {
         this.extension = extension;
-
+        this.tvgNames = tvgNames;
+        this.unaryOpName = unaryOpName;
     }
 
     private List<Triple> performUpwardExtension(Triple t) {
@@ -49,23 +44,20 @@ public class R2RUpwardExtension implements RelationToRelationOperator<JenaGraphO
         }
     }
 
-
     private boolean isTypeAssertion(Triple t) {
         return RDFTYPE.equals(t.getPredicate());
     }
 
-
     public TimeVarying<Collection<Graph>> apply(SDS<Graph> sds) {
         return null;
     }
-
 
     @Override
     public JenaGraphOrBindings eval(List<JenaGraphOrBindings> datasets) {
         Graph graphMem = GraphFactory.createGraphMem();
         datasets.forEach(
                 g -> g.getContent().stream()
-                        .map(triple -> performUpwardExtension(triple))
+                        .map(this::performUpwardExtension)
                         .flatMap(Collection::stream)
                         .forEach(graphMem::add)
         );
@@ -74,11 +66,11 @@ public class R2RUpwardExtension implements RelationToRelationOperator<JenaGraphO
 
     @Override
     public List<String> getTvgNames() {
-        return null;
+        return tvgNames;
     }
 
     @Override
     public String getResName() {
-        return null;
+        return unaryOpName;
     }
 }

@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 public class JenaStreamGenerator {
-    private static final String PREFIX = "http://test/";
+    public static final String PREFIX = "http://test/";
     private static final Long TIMEOUT = 1000l;
 
     private final String[] colors = new String[]{"Blue", "Green", "Red", "Yellow", "Black", "Grey", "White"};
@@ -89,6 +89,7 @@ public class JenaStreamGenerator {
         Graph graph = GraphMemFactory.createGraphMem();
 
         Node p = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+//        Node q = NodeFactory.createURI("http://test/hasColor");
 
         if (stream.getName().equals("http://test/stream1")) {
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + selectRandomColor()));
@@ -99,7 +100,6 @@ public class JenaStreamGenerator {
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + "0"));
             stream.put(graph, ts);
         } else if (stream.getName().equals("http://test/RDFstar")) {
-
             for (Scanner s : scanners) {
                 String data = s.nextLine();
                 Graph tmp = GraphMemFactory.createGraphMem();

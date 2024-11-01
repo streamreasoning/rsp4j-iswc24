@@ -118,6 +118,7 @@ public class polyflow_AccumulateContent {
                         report,
                         1000,
                         1000);
+
         StreamToRelationOperator<Tuple, Tuple, Table> s2rOp_2 =
                 new HoppingWindowOpImpl<>(
                         tick,

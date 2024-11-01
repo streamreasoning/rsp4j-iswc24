@@ -1,14 +1,12 @@
-package graph.jena.examples;
+package graph.jena.iswc.tutorial;
 
 import graph.jena.datatypes.JenaGraphOrBindings;
-import graph.jena.operatorsimpl.r2r.jena.FullQueryBinaryJena;
 import graph.jena.operatorsimpl.r2r.jena.FullQueryUnaryJena;
 import graph.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import graph.jena.sds.SDSJena;
 import graph.jena.stream.JenaBindingStream;
 import graph.jena.stream.JenaStreamGenerator;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.compose.Union;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.streamreasoning.polyflow.api.enums.Tick;
@@ -33,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class polyflowExample {
+public class RedesignCSPARQL {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -54,11 +52,10 @@ public class polyflowExample {
 
         AccumulatorContentFactory<Graph, Graph, JenaGraphOrBindings> accumulatorContentFactory = new AccumulatorContentFactory<>(
                 (g) -> g,
-                JenaGraphOrBindings::new,
-                JenaGraphOrBindings::new,
+                (Graph content) -> {return new JenaGraphOrBindings(content);},
+                (r1, r2) -> new JenaGraphOrBindings(r1, r2),
                 emptyContent
         );
-
 
         ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 

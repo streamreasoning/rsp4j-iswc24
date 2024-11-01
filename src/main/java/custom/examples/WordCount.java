@@ -1,12 +1,9 @@
 package custom.examples;
 
-import custom.customdatatypes.Fruit;
+import custom.DummyR2ROp;
 import custom.customdatatypes.FruitBasket;
-import custom.customdatatypes.FruitDataStream;
 import custom.customoperators.CustomTumblingWindow;
-import custom.customoperators.FilterFruitByRipeOp;
 import custom.customoperators.RelationToStreamOpImpl;
-import custom.stream.FruitStreamGenerator;
 import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
 import org.streamreasoning.polyflow.api.operators.s2r.execution.assigner.StreamToRelationOperator;
@@ -25,56 +22,59 @@ import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
 import org.streamreasoning.polyflow.base.sds.SDSDefault;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /*
  * This is the complete code of the step-by-step guide present on GitHub.
  */
 
-public class FruitStepByStepGuide {
+public class WordCount {
 
     public static void main(String[] args) throws InterruptedException {
 
         /*------------Input and Output Stream definitions------------*/
 
         // Define a generator to create input elements
-        FruitStreamGenerator generator = new FruitStreamGenerator();
-
         // Define an input stream
-        DataStream<Fruit> inputStreamFruit = generator.getStream("fruit_market_one");
+        DataStream<String> inputStreamFruit = new StringDataStream("stream1");//
 
         // define an output stream
-        DataStream<Fruit> outStream = new FruitDataStream("fruit_consumer");
+        DataStream<String> outStream = new StringDataStream("out");//
 
         /*------------Window Content------------*/
 
         //Entity that represents a neutral element for our operations on the 'R' data type
-        FruitBasket emptyBasket = new FruitBasket();
 
         // Factory object to manage the window content, more information on our GitHub guide!
-        ContentFactory<Fruit, Fruit, FruitBasket> accumulatorContentFactory = new AccumulatorContentFactory<>(
-                (fruit) -> fruit,
+        IterableMap emptyBasket = new IterableMap();
+        ContentFactory<String, Map<String, Integer>, IterableMap> accumulatorContentFactory = new AccumulatorContentFactory<>(
                 (fruit) -> {
-                    FruitBasket fb = new FruitBasket();
-                    fb.addFruit(fruit);
-                    return fb;
-                },
-                (basket_1, basket_2) -> {
-                    if (basket_1.getSize() > basket_2.getSize()) {
-                        basket_1.addAll(basket_2);
-                        return basket_1;
-                    } else {
-                        basket_2.addAll(basket_1);
-                        return basket_2;
+                    Map<String, Integer> entries = new HashMap<>();
+                    for (String w : fruit.split("\s")) {
+                        entries.computeIfPresent(w, (key, value) -> value + 1);
+                        entries.computeIfAbsent(w, (key) -> 1);
                     }
+                    return entries;
+                },
+                IterableMap::new,
+                (m1, m2) -> {
+                    m1.map.forEach((key, value) -> m2.map.merge(key, value, Integer::sum));
+                    return m2;
                 },
                 emptyBasket
         );
 
+//        ContentFactory<String, String[], IterableMap> accumulatorContentFactory2 = new AccumulatorContentFactory<>(
+//                (fruit) -> fruit.split("\s"),
+//                IterableMap::new,
+//                (m1, m2) -> {
+//                    m1.map.forEach((key, value) -> m2.map.merge(key, value, Integer::sum));
+//                    return m2;
+//                },
+//                emptyBasket
+//        );
 
-        /*------------Window Properties------------*/
+        /*------------Window Properties-    -----------*/
 
         // Window properties (report)
         Report report = new ReportImpl();
@@ -87,7 +87,7 @@ public class FruitStepByStepGuide {
         /*------------S2R, R2R and R2S Operators------------*/
 
         //Define the Stream to Relation operator (blueprint of the windows)
-        StreamToRelationOperator<Fruit, Fruit, FruitBasket> fruit_s2r_one =
+        StreamToRelationOperator<String, Map<String, Integer>, IterableMap> fruit_s2r_one =
                 new CustomTumblingWindow<>(
                         instance,
                         "TumblingWindow",
@@ -96,17 +96,18 @@ public class FruitStepByStepGuide {
                         1000);
 
         //Define Relation to Relation operators and chain them together. Here we filter out fruits that are underripe
-        RelationToRelationOperator<FruitBasket> r2r_filter_underripe = new FilterFruitByRipeOp("underripe", Collections.singletonList(fruit_s2r_one.getName()), "filtered_fruit");
+        RelationToRelationOperator<IterableMap> r2r_filter_underripe = new DummyR2ROp<>(Collections.singletonList(fruit_s2r_one.getName()), "filtered_fruit");
 
         //Relation to Stream operator, take the final fruit basket and send out each fruit
-        RelationToStreamOperator<FruitBasket, Fruit> r2sOp = new RelationToStreamOpImpl();
+        RelationToStreamOperator<IterableMap, String> r2sOp = new RelationToStreamOpImpl();
 
 
         /*------------Task definition------------*/
 
         //Define the Tasks, each of which represent a query
-        Task<Fruit, Fruit, FruitBasket, Fruit> task = new TaskImpl<>();
-        task = task.addS2ROperator(fruit_s2r_one, inputStreamFruit)
+        Task<String, Map<String, Integer>, IterableMap, String> task = new TaskImpl<>();
+        task = task
+                .addS2ROperator(fruit_s2r_one, inputStreamFruit)
                 .addR2ROperator(r2r_filter_underripe)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())
@@ -120,12 +121,12 @@ public class FruitStepByStepGuide {
         /*------------Continuous Program definition------------*/
 
         //Define the Continuous Program, which acts as the coordinator of the whole system
-        ContinuousProgram<Fruit, Fruit, FruitBasket, Fruit> cp = new ContinuousProgramImpl<>();
+        ContinuousProgram<String, Map<String, Integer>, IterableMap, String> cp = new ContinuousProgramImpl<>();
 
-        List<DataStream<Fruit>> inputStreams = new ArrayList<>();
+        List<DataStream<String>> inputStreams = new ArrayList<>();
         inputStreams.add(inputStreamFruit);
 
-        List<DataStream<Fruit>> outputStreams = new ArrayList<>();
+        List<DataStream<String>> outputStreams = new ArrayList<>();
         outputStreams.add(outStream);
 
 
@@ -136,9 +137,6 @@ public class FruitStepByStepGuide {
 
         outStream.addConsumer((out, el, ts) -> System.out.println("Output Element: [" + el + "]" + " @ " + ts));
 
-        generator.startStreaming();
-        Thread.sleep(20_000);
-        generator.stopStreaming();
     }
 
 

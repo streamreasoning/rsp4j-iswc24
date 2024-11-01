@@ -6,7 +6,7 @@ import custom.customdatatypes.FruitDataStream;
 import custom.customoperators.CustomTumblingWindow;
 import custom.customoperators.FilterFruitByRipeOp;
 import custom.customoperators.JoinFruitBasketOp;
-import custom.customoperators.RelationToStreamFruitOp;
+import custom.customoperators.RelationToStreamOpImpl;
 import custom.stream.FruitStreamGenerator;
 import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
 import org.streamreasoning.polyflow.api.operators.r2s.RelationToStreamOperator;
@@ -20,7 +20,6 @@ import org.streamreasoning.polyflow.api.secret.report.strategies.OnWindowClose;
 import org.streamreasoning.polyflow.api.secret.time.Time;
 import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
 import org.streamreasoning.polyflow.api.stream.data.DataStream;
-import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
 import org.streamreasoning.polyflow.base.contentimpl.factories.FilterContentFactory;
 import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
@@ -73,7 +72,7 @@ public class FruitAdvancedGuide {
                 (fruit) -> fruit.getWeight() > 2
         );
 
-        ContentFactory<Fruit, Fruit, FruitBasket> accumulatorContentFactory = new AccumulatorContentFactory<>(
+        ContentFactory<Fruit, Fruit, FruitBasket> accumulatorContentFactory = new AccumulatorFlatContentFactory<>(
                 (fruit) -> fruit,
                 (fruit) -> {
                     FruitBasket fb = new FruitBasket();
@@ -127,7 +126,7 @@ public class FruitAdvancedGuide {
         RelationToRelationOperator<FruitBasket> r2r_join = new JoinFruitBasketOp(List.of("filtered_fruit", fruit_s2r_two.getName()), "joined_fruit");
 
         //Relation to Stream operator, take the final fruit basket and send out each fruit
-        RelationToStreamOperator<FruitBasket, Fruit> r2sOp = new RelationToStreamFruitOp();
+        RelationToStreamOperator<FruitBasket, Fruit> r2sOp = new RelationToStreamOpImpl();
 
 
         /*------------Task definition------------*/

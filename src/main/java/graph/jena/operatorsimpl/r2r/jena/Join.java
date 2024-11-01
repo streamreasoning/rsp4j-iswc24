@@ -13,10 +13,8 @@ import java.util.stream.Collectors;
 
 public class Join implements RelationToRelationOperator<JenaGraphOrBindings> {
 
-
     private List<String> tvgNames;
     private String resName;
-
 
     public Join(List<String> tvgNames, String resName) {
         this.tvgNames = tvgNames;
@@ -37,15 +35,11 @@ public class Join implements RelationToRelationOperator<JenaGraphOrBindings> {
 
     @Override
     public JenaGraphOrBindings eval(List<JenaGraphOrBindings> datasets) {
-
         List<Binding> collect = datasets.get(0).getResult().stream().flatMap(l -> datasets.get(1).getResult().stream().map(r -> Algebra.merge(l, r)))
                 .filter(b -> b != null).collect(Collectors.toList());
-
         JenaGraphOrBindings result = new JenaGraphOrBindings();
         result.setResult(collect);
-
         return result;
-
     }
 
 
