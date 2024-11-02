@@ -15,12 +15,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 
-public class JenaStreamGenerator {
+public class JenaStreamGeneratorTriple {
     public static final String PREFIX = "http://test/";
     private static final Long TIMEOUT = 1000l;
 
     private final String[] colors = new String[]{"Blue", "Green", "Red", "Yellow", "Black", "Grey", "White"};
-    private final Map<String, DataStream<Graph>> activeStreams;
+    private final Map<String, DataStream<Triple>> activeStreams;
     private final AtomicBoolean isStreaming;
     private final Random randomGenerator;
     private AtomicLong streamIndexCounter;
@@ -30,14 +30,14 @@ public class JenaStreamGenerator {
     private List<Scanner> scanners = new ArrayList<>();
 
 
-    public JenaStreamGenerator() {
+    public JenaStreamGeneratorTriple() {
         this.streamIndexCounter = new AtomicLong(0);
-        this.activeStreams = new HashMap<String, DataStream<Graph>>();
+        this.activeStreams = new HashMap<String, DataStream<Triple>>();
         this.isStreaming = new AtomicBoolean(false);
         randomGenerator = new Random(1336);
         try {
             for (int i = 0; i < fileNames.length; i++) {
-                scanners.add(new Scanner(new File(JenaStreamGenerator.class.getResource(fileNames[i]).getPath())));
+                scanners.add(new Scanner(new File(JenaStreamGeneratorTriple.class.getResource(fileNames[i]).getPath())));
                 //Read prefixes from all files
                 prefixes = scanners.get(i).nextLine();
             }
@@ -47,17 +47,17 @@ public class JenaStreamGenerator {
     }
 
     public static String getPREFIX() {
-        return JenaStreamGenerator.PREFIX;
+        return JenaStreamGeneratorTriple.PREFIX;
     }
 
-    public DataStream<Graph> getStream(String streamURI) {
+
+    public DataStream<Triple> getStream(String streamURI) {
         if (!activeStreams.containsKey(streamURI)) {
-            JenaRDFStream stream = new JenaRDFStream(streamURI);
+            JenaRDFTripleStream stream = new JenaRDFTripleStream(streamURI);
             activeStreams.put(streamURI, stream);
         }
         return activeStreams.get(streamURI);
     }
-
 
     public void startStreaming() {
         if (!this.isStreaming.get()) {
@@ -83,7 +83,7 @@ public class JenaStreamGenerator {
         }
     }
 
-    private void generateDataAndAddToStream(DataStream<Graph> stream, long ts) {
+    private void generateDataAndAddToStream(DataStream<Triple> stream, long ts) {
         Graph graph = GraphMemFactory.createGraphMem();
 
         Node p = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
@@ -92,11 +92,11 @@ public class JenaStreamGenerator {
         if (stream.getName().equals("http://test/stream1")) {
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + selectRandomColor()));
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + "Black"));
-            stream.put(graph, ts);
+            graph.stream().forEach(t -> stream.put(t, ts));
         } else if (stream.getName().equals("http://test/stream2")) {
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + randomGenerator.nextInt(10)));
             graph.add(NodeFactory.createURI(PREFIX + "S" + streamIndexCounter.incrementAndGet()), p, NodeFactory.createURI(PREFIX + "0"));
-            stream.put(graph, ts);
+            graph.stream().forEach(t -> stream.put(t, ts));
         } else if (stream.getName().equals("http://test/RDFstar")) {
             for (Scanner s : scanners) {
                 String data = s.nextLine();
@@ -109,7 +109,7 @@ public class JenaStreamGenerator {
                         .lang(RDFLanguages.TRIG)
                         .parse(ds);
                 ds.stream().forEach(g -> tmp.add(g.asTriple()));
-                stream.put(tmp, ts);
+                tmp.stream().forEach(t -> stream.put(t, ts));
             }
 
 

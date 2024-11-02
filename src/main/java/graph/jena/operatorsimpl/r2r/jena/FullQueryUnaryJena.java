@@ -39,9 +39,7 @@ public class FullQueryUnaryJena implements RelationToRelationOperator<JenaGraphO
 
     @Override
     public JenaGraphOrBindings eval(List<JenaGraphOrBindings> datasets) {
-
         JenaGraphOrBindings dataset = datasets.get(0);
-
         q.getProjectVars();
         Node aDefault = NodeFactory.createURI("default");
         DatasetGraph dg = new DatasetGraphInMemory();

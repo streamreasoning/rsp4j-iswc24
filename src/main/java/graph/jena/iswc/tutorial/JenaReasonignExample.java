@@ -8,6 +8,7 @@ import graph.jena.sds.SDSJena;
 import graph.jena.stream.JenaBindingStream;
 import graph.jena.stream.JenaStreamGenerator;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.streamreasoning.polyflow.api.enums.Tick;
@@ -39,6 +40,7 @@ public class JenaReasonignExample {
         JenaStreamGenerator generator = new JenaStreamGenerator();
 
         DataStream<Graph> inputStream = generator.getStream("http://test/stream1");
+
         // define output stream
         JenaBindingStream outStream = new JenaBindingStream("out");
 
