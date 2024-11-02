@@ -3,19 +3,19 @@ package graph.jena.iswc.tutorial;
 import org.streamreasoning.polyflow.api.secret.content.Content;
 import org.streamreasoning.polyflow.api.secret.content.ContentFactory;
 import org.streamreasoning.polyflow.base.contentimpl.EmptyContent;
-import org.streamreasoning.polyflow.base.contentimpl.content.AccumulatorContent;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class AccumulatorContentFactoryFlat<I, W, R> implements ContentFactory<I, W, R> {
 
-    Function<I, Iterable<W>> f1;
+    Function<I, Stream<W>> f1;
     Function<W, R> f2;
     BiFunction<R, R, R> sumR;
     R emptyContent;
 
-    public AccumulatorContentFactoryFlat(Function<I, Iterable<W>> f1, Function<W, R> f2, BiFunction<R, R, R> sumR, R emptyContent) {
+    public AccumulatorContentFactoryFlat(Function<I, Stream<W>> f1, Function<W, R> f2, BiFunction<R, R, R> sumR, R emptyContent) {
         this.f1 = f1;
         this.f2 = f2;
         this.sumR = sumR;
