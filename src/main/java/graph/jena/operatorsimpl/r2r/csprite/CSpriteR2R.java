@@ -20,7 +20,10 @@ public class CSpriteR2R implements RelationToRelationOperator<JenaGraphOrBinding
     private Set<String> queriedTypes;
     private Set<String> queriedProperties;
 
-    public CSpriteR2R(RelationToRelationOperator<JenaGraphOrBindings> relationOperator, HierarchySchema hierarchySchema) {
+    private final List<String> tvgNames;
+    private final String unaryOpName;
+
+    public CSpriteR2R(RelationToRelationOperator<JenaGraphOrBindings> relationOperator, HierarchySchema hierarchySchema,List<String> tvgNames, String unaryOpName) {
         this.r2r = relationOperator;
         this.hierarchySchema = hierarchySchema;
         this.queriedTypes = new HashSet<>();
@@ -28,7 +31,9 @@ public class CSpriteR2R implements RelationToRelationOperator<JenaGraphOrBinding
         upwardExtension = new UpwardExtension(hierarchySchema.getSchema());
         this.findTypes();
         this.pruneHierarchy();
-//        this.r2rUpward = new R2RUpwardExtension(this.upwardExtension);
+        this.tvgNames = tvgNames;
+        this.unaryOpName = unaryOpName;
+       this.r2rUpward = new R2RUpwardExtension(this.upwardExtension, tvgNames, unaryOpName);
     }
 
     public void findTypes() {
@@ -77,18 +82,15 @@ public class CSpriteR2R implements RelationToRelationOperator<JenaGraphOrBinding
         return r2rUpward.eval(datasets);
     }
 
+
     @Override
     public List<String> getTvgNames() {
-        return r2r.getTvgNames();
+        return tvgNames;
     }
 
     @Override
     public String getResName() {
-        return r2r.getResName();
-    }
-
-    public Set<String> getQueriedTypes() {
-        return queriedTypes;
+        return unaryOpName;
     }
 
 }

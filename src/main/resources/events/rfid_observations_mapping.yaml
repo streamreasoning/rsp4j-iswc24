@@ -1,0 +1,21 @@
+prefixes:
+  schema: "http://schema.org/"
+  myfunc: "http://myfunc.com/"
+  sosa: "http://www.w3.org/ns/sosa/"
+  covid: "http://rsp4j.io/covid/"
+mappings:
+  observation:
+    sources:
+      - ['input~csv']
+    s: covid:$(sensorID)-observation-$(timestamp)
+    po:
+      - [a, sosa:Observation]
+      - [sosa:featureOfInterest, covid:$(detected)~iri]
+      - [sosa:madeBySensor, covid:sensor_$(location)]
+      - [covid:madeBySensor, covid:sensor_$(location)]
+  person:
+    sources:
+      - ['input~csv']
+    s: covid:$(detected)
+    po:
+      - [covid:isIn, covid:$(location)Room~iri]

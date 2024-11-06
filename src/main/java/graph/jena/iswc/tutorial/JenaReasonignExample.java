@@ -1,14 +1,11 @@
 package graph.jena.iswc.tutorial;
 
 import graph.jena.datatypes.JenaGraphOrBindings;
-import graph.jena.operatorsimpl.r2r.jena.FullQueryUnaryJena;
 import graph.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
 import graph.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import graph.jena.sds.SDSJena;
 import graph.jena.stream.JenaBindingStream;
-import graph.jena.stream.JenaStreamGenerator;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.streamreasoning.polyflow.api.enums.Tick;
@@ -37,9 +34,9 @@ public class JenaReasonignExample {
 
     public static void main(String[] args) throws InterruptedException {
 
-        JenaStreamGenerator generator = new JenaStreamGenerator();
+        JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
-        DataStream<Graph> inputStream = generator.getStream("http://test/stream1");
+        DataStream<Graph> inputStream = generator.getStream("http://rsp4j.io/covid/observations");
 
         // define output stream
         JenaBindingStream outStream = new JenaBindingStream("out");
@@ -72,10 +69,9 @@ public class JenaReasonignExample {
                         report,
                         1000,
                         1000);
-
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning("SELECT * WHERE {GRAPH ?g { ?s a ?t }}", Collections.singletonList(s2rOp.getName()), "partial_1");
-//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g { ?s ?p ?o } }", Collections.singletonList(s2rOp.getName()), "partial_2");
-//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp3 = new FullQueryBinaryJena("", List.of("partial_1", "partial_2"), "partial_3");
+        String schemaURI = "sensor_schema.ttl";
+        String query = "SELECT * WHERE {GRAPH ?g { ?s a <http://rsp4j.io/covid/Update> }}";
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning(query, Collections.singletonList(s2rOp.getName()), "partial_1", schemaURI);
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 

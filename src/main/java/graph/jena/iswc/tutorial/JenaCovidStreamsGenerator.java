@@ -137,7 +137,7 @@ public class JenaCovidStreamsGenerator {
         long eventID = streamIndexCounter.incrementAndGet();
         switch (selectedType){
             case RFID:
-                graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), a, NodeFactory.createURI(PREFIX_SOSA + "RFIDObservation"));
+                graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), a, NodeFactory.createURI(PREFIX + "RFIDObservation"));
                 graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "madeBySensor"), NodeFactory.createURI(PREFIX + randomRoom+"_sensor"));
                 graph.add(NodeFactory.createURI(PREFIX + randomRoom+"_sensor"), NodeFactory.createURI(PREFIX_SOSA + "hasLocation"), NodeFactory.createURI(PREFIX + randomRoom));
                 graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "hasFeatureOfInterest"), NodeFactory.createURI(PREFIX + randomPerson));

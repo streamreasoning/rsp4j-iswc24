@@ -6,7 +6,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.reasoner.InfGraph;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.ReasonerRegistry;
 import org.apache.jena.riot.RDFDataMgr;
@@ -32,13 +31,13 @@ public class FullQueryUnaryReasoning implements RelationToRelationOperator<JenaG
 
     Reasoner reasoner;
 
-    public FullQueryUnaryReasoning(String query, List<String> tvgNames, String resName) {
+    public FullQueryUnaryReasoning(String query, List<String> tvgNames, String resName, String schemaURI) {
         this.query = query;
         this.tvgNames = tvgNames;
         this.resName = resName;
         this.q = QueryFactory.create(query);
 
-        Model schema = RDFDataMgr.loadModel("/Users/rictomm/_Projects/polyflow-examples/src/main/resources/supercolor.ttl");
+        Model schema = RDFDataMgr.loadModel(schemaURI);
 
         this.reasoner = ReasonerRegistry.getRDFSReasoner();
         reasoner.setParameter(ReasonerVocabulary.PROPsetRDFSLevel,

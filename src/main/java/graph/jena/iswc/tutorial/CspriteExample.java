@@ -1,6 +1,7 @@
 package graph.jena.iswc.tutorial;
 
 import graph.jena.datatypes.JenaGraphOrBindings;
+import graph.jena.operatorsimpl.r2r.csprite.CSpriteR2R;
 import graph.jena.operatorsimpl.r2r.csprite.HierarchySchema;
 import graph.jena.operatorsimpl.r2r.csprite.R2RUpwardExtension;
 import graph.jena.operatorsimpl.r2r.csprite.UpwardExtension;
@@ -42,9 +43,9 @@ public class CspriteExample {
 
     public static void main(String[] args) throws InterruptedException {
 
-        JenaStreamGenerator generator = new JenaStreamGenerator();
+        JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
-        DataStream<Graph> inputStream = generator.getStream("http://test/stream1");
+        DataStream<Graph> inputStream = generator.getStream("http://rsp4j.io/covid/observations");
         // define output stream
         JenaBindingStream outStream = new JenaBindingStream("out");
 
@@ -73,13 +74,12 @@ public class CspriteExample {
                         "w1",
                         accumulatorContentFactory,
                         report,
-                        2000,
-                        2000);
+                        1000,
+                        1000);
 
-
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new R2RUpwardExtension(new UpwardExtension(getHierarchySchema().getSchema()), List.of(s2rOp.getName()), "partial_1");
         RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new TP(getTriple(), List.of("partial_1"), "partial_2");
-//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE { GRAPH ?g {?s ?p ?o } }", List.of("partial_1"), "partial_2");
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new CSpriteR2R(r2rOp2, getHierarchySchema(),List.of(s2rOp.getName()), "partial_1");
+
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
@@ -109,20 +109,23 @@ public class CspriteExample {
     }
 
     private static OpTriple getTriple() {
-        Node s = Var.alloc("superColor");
+        Node s = Var.alloc("s");
         Node p = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-        Node o = NodeFactory.createURI(JenaStreamGenerator.PREFIX + "Super");
+        Node o = NodeFactory.createURI(JenaCovidStreamsGenerator.PREFIX + "Update");
         return new OpTriple(Triple.create(s, p, o));
     }
 
     private static HierarchySchema getHierarchySchema() {
         HierarchySchema hierarchySchema = new HierarchySchema();
-        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "Black", JenaStreamGenerator.PREFIX + "SuperBlack");
-        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "White", JenaStreamGenerator.PREFIX + "SuperWhite");
-        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "Gray", JenaStreamGenerator.PREFIX + "SuperGray");
-        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "SuperWhite", JenaStreamGenerator.PREFIX + "Super");
-        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "SuperBlack", JenaStreamGenerator.PREFIX + "Super");
-        hierarchySchema.addSubClassOf(JenaStreamGenerator.PREFIX + "SuperGray", JenaStreamGenerator.PREFIX + "Super");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX_SOSA + "Observation", JenaCovidStreamsGenerator.PREFIX + "Update");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX_SIOC + "Post", JenaCovidStreamsGenerator.PREFIX + "Update");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "LocationObservation", JenaCovidStreamsGenerator.PREFIX_SOSA + "Observation");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "FacebookPost", JenaCovidStreamsGenerator.PREFIX_SIOC + "Post");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "LowFrequencyLocationObservation", JenaCovidStreamsGenerator.PREFIX + "LocationObservation");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "RFIDObservation", JenaCovidStreamsGenerator.PREFIX + "LowFrequencyLocationObservation");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "HighFrequencyLocationObservation", JenaCovidStreamsGenerator.PREFIX + "LocationObservation");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "BLEObservation", JenaCovidStreamsGenerator.PREFIX + "HighFrequencyLocationObservation");
+        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "GPSObservation", JenaCovidStreamsGenerator.PREFIX + "HighFrequencyLocationObservation");
         return hierarchySchema;
     }
 }
