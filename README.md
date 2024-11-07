@@ -1,7 +1,7 @@
 # Examples
 
 This branch contains some implementation of stream processors created with the Polyflow APIs.
-There are two main examples: [Relational](src/main/java/relational) and [Graph](src/main/java/graph), although [Document](src/main/java/document) and
+There are two main examples: [Relational](src/main/java/relational) and [Graph](src/main/java/org/streamreasoning/sld/processing), although [Document](src/main/java/document) and
 [Custom](src/main/java/custom) are also available
 
 The modules have a similar structure:
