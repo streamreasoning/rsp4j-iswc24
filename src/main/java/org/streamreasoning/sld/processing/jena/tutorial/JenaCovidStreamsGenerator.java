@@ -94,10 +94,10 @@ public class JenaCovidStreamsGenerator {
                         while (this.isStreaming.get()) {
                             long finalTs = ts;
                             observationStream.put(createRandomObservationEvent(), ts);
-                            if (randomGenerator.nextDouble() > 0.9) {
+                            if (randomGenerator.nextDouble() > 0.4) {
                                 covidStream.put(createRandomCovidEvent(), ts);
                             }
-                            if (randomGenerator.nextDouble() >= 0.5) {
+                            if (randomGenerator.nextDouble() >= 0.4) {
                                 contactStream.put(createRandomContactTracingEvent(), ts);
                             }
                             ts += 5 * 60 * 1000;
@@ -163,7 +163,7 @@ public class JenaCovidStreamsGenerator {
         long eventID = streamIndexCounter.incrementAndGet();
 
         graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), a, NodeFactory.createURI(PREFIX + "TestResultPost"));
-        graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "featureOfInterest"), NodeFactory.createURI(PREFIX + randomPerson));
+        graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "hasFeatureOfInterest"), NodeFactory.createURI(PREFIX + randomPerson));
         graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "hasResult"), NodeFactory.createURI(PREFIX + "positive"));
         return graph;
     }
@@ -202,6 +202,13 @@ public class JenaCovidStreamsGenerator {
             }else{
                 System.out.println("Stream not found: " + s.getName());
             }
+        }
+    }
+    public void linkAndCoalescStreams(List<DataStream<Graph>> inputStreams){
+        DataStream<Graph> inputStream = inputStreams.get(0);
+        for(DataStream<Graph> s : this.activeStreams.values()){
+                s.addConsumer((out, el, ts) -> inputStream.put(el,ts));
+
         }
     }
 }

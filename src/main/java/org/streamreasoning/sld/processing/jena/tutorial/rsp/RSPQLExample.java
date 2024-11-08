@@ -25,26 +25,49 @@ public class RSPQLExample {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, InterruptedException {
 
-        String query = "PREFIX : <http://rsp4j.io/covid/>  " +
+        // Task 1: Write a query to find the location (?room) of the person (?person)
+        String queryWhoIsWhere = "PREFIX : <http://rsp4j.io/covid/>  " +
                        "REGISTER ISTREAM <http://out/stream> AS " +
                        "SELECT * " +
                        "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT1S] " +
-
                        "WHERE {" +
                        "   WINDOW ?w { ?person <http://rsp4j.io/covid/isIn> ?room } ." +
                        "}";
 
-        System.out.println(query);
+        // Task 2: Write a query to find out the COVID positive persons (?person) and their location (?room)
+        String queryWhoIsPositiveWhere = "PREFIX : <http://rsp4j.io/covid/>  " +
+                "REGISTER ISTREAM <http://out/stream> AS " +
+                "SELECT * " +
+                "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT10S] " +
+                "WHERE {" +
+                "   WINDOW ?w { " +
+                "?person <http://rsp4j.io/covid/isIn> ?room .\n" +
+                "?testObservation <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?person. \n" +
+                "?testObservation <http://www.w3.org/ns/sosa/hasResult> <http://rsp4j.io/covid/positive> . " +
+                "} ." +
+                "}";
+        // Task 3: Write a query to find the person at risk of
+        String queryPersonAtRisk = "PREFIX : <http://rsp4j.io/covid/>  " +
+                "REGISTER ISTREAM <http://out/stream> AS " +
+                "SELECT * " +
+                "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT1S] " +
+                "WHERE {" +
+                "   WINDOW ?w { " +
+                "?person <http://rsp4j.io/covid/isIn> ?room .\n" +
+                "?testObservation <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?person. \n" +
+                "?testObservation <http://www.w3.org/ns/sosa/hasResult> <http://rsp4j.io/covid/positive> . " +
+                "?personAtRisk <http://rsp4j.io/covid/isWith> ?person ." +
+                "} ." +
+                "}";
 
-        ContinuousQuery<Graph, Graph, JenaGraphOrBindings, Binding> parse = RSPQLQueryFactory.parse(query);
+        ContinuousQuery<Graph, Graph, JenaGraphOrBindings, Binding> parse = RSPQLQueryFactory.parse(queryWhoIsPositiveWhere);
 
         System.out.println(parse);
 
         JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
-        DataStream<Graph> inputStream = generator.getStream("http://rsp4j.io/covid/observations");
         // link the input streams
-        generator.linkInputStreamByName(parse.instream());
+        generator.linkAndCoalescStreams(parse.instream());
         // define output stream
         JenaBindingStream outStream = (JenaBindingStream) parse.outstream();
 
@@ -59,7 +82,7 @@ public class RSPQLExample {
         outStream.addConsumer((out, el, ts) -> System.out.println(el + " @ " + ts));
 
         generator.startStreaming();
-        Thread.sleep(20_000);
+        Thread.sleep(30_000);
         generator.stopStreaming();
     }
 
