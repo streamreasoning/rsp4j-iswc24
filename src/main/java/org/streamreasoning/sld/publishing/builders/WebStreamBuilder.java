@@ -1,13 +1,14 @@
 package org.streamreasoning.sld.publishing.builders;
 
-import graph.jena.iswc.tutorial.publishing.SLD;
-import graph.jena.iswc.tutorial.publishing.vocabulary.DCAT;
-import graph.jena.iswc.tutorial.publishing.vocabulary.VOCALS;
+
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.streamreasoning.sld.publishing.SLD;
+import org.streamreasoning.sld.publishing.vocabulary.DCAT;
+import org.streamreasoning.sld.publishing.vocabulary.VOCALS;
 
 import java.util.ArrayList;
 import java.util.List;

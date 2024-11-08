@@ -4,6 +4,9 @@ package org.streamreasoning.sld.publishing;
 
 import org.streamreasoning.sld.publishing.builders.DistributionBuilder;
 import org.streamreasoning.sld.publishing.builders.WebStreamBuilder;
+import org.streamreasoning.sld.publishing.enums.Format;
+import org.streamreasoning.sld.publishing.enums.License;
+import org.streamreasoning.sld.publishing.enums.Protocol;
 
 import java.util.Random;
 
