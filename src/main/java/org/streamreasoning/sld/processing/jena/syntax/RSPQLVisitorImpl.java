@@ -1,12 +1,5 @@
 package org.streamreasoning.sld.processing.jena.syntax;
 
-import org.streamreasoning.sld.processing.shared.ContinuousQuery;
-import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryJena;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
-import org.streamreasoning.sld.processing.jena.sds.SDSJena;
-import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
-import org.streamreasoning.sld.processing.jena.stream.JenaRDFStream;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.Query;
@@ -26,6 +19,13 @@ import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorConten
 import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
 import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.FullQueryNaryJena;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
+import org.streamreasoning.sld.processing.jena.sds.SDSJena;
+import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
+import org.streamreasoning.sld.processing.jena.stream.JenaRDFStream;
+import org.streamreasoning.sld.processing.shared.ContinuousQuery;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -101,7 +101,8 @@ public class RSPQLVisitorImpl extends RSPQLBaseVisitor<Task<Graph, Graph, JenaGr
         where = where.replace("WINDOW", "GRAPH");
         this.sparql = QueryFactory.create(select + "\n" + where);
         this.resultVars = sparql.getResultVars();
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryJena(sparql, windows, "partial_1");
+//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryJena(sparql, windows, "partial_1");
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryNaryJena(sparql, windows, "partial_1");
 
         task.addR2ROperator(r2rOp1);
 

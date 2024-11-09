@@ -3,7 +3,6 @@ package org.streamreasoning.sld.processing.neo4j.syntax;
 //import org.streamreasoning.rsp4j.yasper.querying.syntax.QueryFactory;
 
 import org.streamreasoning.sld.processing.shared.ContinuousQuery;
-import org.apache.commons.configuration.ConfigurationException;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 public class ParsingExample {
 
 
-    public static void main(String[] args) throws IOException, ConfigurationException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
 
         // QUERY STUDENT TRICK TEST

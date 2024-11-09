@@ -1,6 +1,6 @@
 package org.streamreasoning.sld.processing.neo4j.events;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;

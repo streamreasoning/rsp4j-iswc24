@@ -1,6 +1,5 @@
 package org.streamreasoning.sld.processing.jena.syntax;
 
-import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +8,6 @@ import java.util.Optional;
 public class PrefixMap {
 
     private final Map<String, String> prefixes;
-    private static final Logger log = Logger.getLogger(PrefixMap.class);
     public PrefixMap(){
         this.prefixes = new HashMap<>();
     }
@@ -34,7 +32,6 @@ public class PrefixMap {
           if(prefixes.containsKey(split[0])){
               return String.format("%s%s",prefixes.get(split[0]),split[1]);
           }else if(!iri.startsWith("http://")){
-              log.warn("Unregistered prefix for : " +iri);
           }
         }
         return iri;

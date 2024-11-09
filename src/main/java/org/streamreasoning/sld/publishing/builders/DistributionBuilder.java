@@ -12,7 +12,6 @@ import org.streamreasoning.sld.publishing.enums.Format;
 import org.streamreasoning.sld.publishing.enums.License;
 import org.streamreasoning.sld.publishing.enums.Protocol;
 import org.streamreasoning.sld.publishing.enums.Security;
-import org.streamreasoning.sld.web.publishing.enums.*;
 import org.streamreasoning.sld.publishing.vocabulary.DCAT;
 import org.streamreasoning.sld.publishing.vocabulary.VOCALS;
 

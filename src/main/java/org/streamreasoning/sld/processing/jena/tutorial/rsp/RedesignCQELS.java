@@ -25,6 +25,7 @@ import org.streamreasoning.polyflow.base.operatorsimpl.r2s.RStream;
 import org.streamreasoning.polyflow.base.operatorsimpl.s2r.LogicalSlidingWindow;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.Join;
 import org.streamreasoning.sld.processing.jena.sds.SDSBinding;
 import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
 import org.streamreasoning.sld.processing.jena.stream.JenaStreamGenerator;
@@ -82,7 +83,6 @@ public class RedesignCQELS {
         RelationToRelationOperator<List<Binding>> r2rOp1 = new R2RBase(Collections.singletonList(s2rOp.getName()), "partial_1");//new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_1");
 //        RelationToRelationOperator<Bindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_2");
 //        RelationToRelationOperator<JenaGraphOrBindings> r2rOp3 = new FullQueryBinaryJena("", List.of("partial_1", "partial_2"), "partial_3");
-
         RelationToStreamOperator<List<Binding>, Binding> r2sOp = new RStream<>();
 
         Task<Triple, Binding, List<Binding>, Binding> task = new TaskImpl<>();

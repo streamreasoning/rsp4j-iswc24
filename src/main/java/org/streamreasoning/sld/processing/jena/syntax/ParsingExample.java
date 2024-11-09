@@ -4,7 +4,6 @@ package org.streamreasoning.sld.processing.jena.syntax;
 
 import org.streamreasoning.sld.processing.shared.ContinuousQuery;
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.engine.binding.Binding;
 
@@ -15,7 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 public class ParsingExample {
 
 
-    public static void main(String[] args) throws IOException, ConfigurationException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
         String query = "PREFIX : <http://example.org/> . " +
                        "REGISTER ISTREAM <http://out/stream> AS " +

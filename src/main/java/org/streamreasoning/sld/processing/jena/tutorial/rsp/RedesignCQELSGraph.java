@@ -85,6 +85,7 @@ public class RedesignCQELSGraph {
 //        RelationToRelationOperator<Bindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_2");
 //        RelationToRelationOperator<JenaGraphOrBindings> r2rOp3 = new FullQueryBinaryJena("", List.of("partial_1", "partial_2"), "partial_3");
 
+
         RelationToStreamOperator<List<Binding>, Binding> r2sOp = new RStream<>();
 
         Task<Graph, Binding, List<Binding>, Binding> task = new TaskImpl<>();
