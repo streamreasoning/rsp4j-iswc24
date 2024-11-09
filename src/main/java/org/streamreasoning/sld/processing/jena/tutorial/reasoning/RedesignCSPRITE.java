@@ -37,7 +37,7 @@ import org.streamreasoning.polyflow.base.processing.TaskImpl;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResesignCSPRITE {
+public class RedesignCSPRITE {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -75,10 +75,12 @@ public class ResesignCSPRITE {
                         1000,
                         1000);
 
+        System.out.println("Before pruning");
+        System.out.println(getHierarchySchema().getSchema());
         RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new TP(getTriple(), List.of("partial_1"), "partial_2");
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new CSpriteR2R(r2rOp2, getHierarchySchema(),List.of(s2rOp.getName()), "partial_1");
-
-
+        CSpriteR2R r2rOp1 = new CSpriteR2R(r2rOp2, getHierarchySchema(),List.of(s2rOp.getName()), "partial_1");
+        System.out.println("After pruning");
+        System.out.println(r2rOp1.getHierachy());
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
         Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
