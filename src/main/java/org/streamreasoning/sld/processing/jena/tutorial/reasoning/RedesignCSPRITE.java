@@ -35,6 +35,7 @@ import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RedesignCSPRITE {
@@ -56,14 +57,29 @@ public class RedesignCSPRITE {
 
         JenaGraphOrBindings emptyContent = new JenaGraphOrBindings(GraphFactory.createGraphMem());
 
+
+
+        ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
+
+
+
+        System.out.println("Before pruning");
+        System.out.println(getHierarchySchema().getSchema());
+        CSpriteR2R csprite = new CSpriteR2R(Collections.singleton("http://rsp4j.io/covid/Update"), getHierarchySchema(),List.of("w1"), "partial_1");
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new TP(getTriple(), List.of("partial_1"), "partial_2");
+        System.out.println("After pruning");
+        System.out.println(csprite.getHierachy());
+        RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
+
+        //Task: use CSprite to perform the upward extension in the S2R operator instead of the R2R operator
+        // you can use csprite.eval()
+
         AccumulatorContentFactory<Graph, Graph, JenaGraphOrBindings> accumulatorContentFactory = new AccumulatorContentFactory<>(
                 (g) -> g,
                 JenaGraphOrBindings::new,
                 JenaGraphOrBindings::new,
                 emptyContent
         );
-
-        ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp =
                 new HoppingWindowOpImpl<>(
@@ -75,17 +91,9 @@ public class RedesignCSPRITE {
                         1000,
                         1000);
 
-        System.out.println("Before pruning");
-        System.out.println(getHierarchySchema().getSchema());
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new TP(getTriple(), List.of("partial_1"), "partial_2");
-        CSpriteR2R r2rOp1 = new CSpriteR2R(r2rOp2, getHierarchySchema(),List.of(s2rOp.getName()), "partial_1");
-        System.out.println("After pruning");
-        System.out.println(r2rOp1.getHierachy());
-        RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
-
         Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
         task = task.addS2ROperator(s2rOp, inputStream)
-                .addR2ROperator(r2rOp1)
+                .addR2ROperator(csprite)
                 .addR2ROperator(r2rOp2)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())

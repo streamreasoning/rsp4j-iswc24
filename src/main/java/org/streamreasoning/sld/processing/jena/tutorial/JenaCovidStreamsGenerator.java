@@ -190,9 +190,9 @@ public class JenaCovidStreamsGenerator {
 
     public static void main(String[] args){
         JenaCovidStreamsGenerator gen = new JenaCovidStreamsGenerator();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10; i++) {
             System.out.println("New event:");
-            System.out.println(gen.createRandomObservationEvent());
+            System.out.println(gen.createRandomContactTracingEvent());
         }
     }
     public void linkInputStreamByName(List<DataStream<Graph>> inputStreams){

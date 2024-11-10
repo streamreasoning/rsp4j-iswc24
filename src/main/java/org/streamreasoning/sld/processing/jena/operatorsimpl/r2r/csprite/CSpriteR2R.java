@@ -33,7 +33,18 @@ public class CSpriteR2R implements RelationToRelationOperator<JenaGraphOrBinding
         this.pruneHierarchy();
         this.tvgNames = tvgNames;
         this.unaryOpName = unaryOpName;
-       this.r2rUpward = new R2RUpwardExtension(this.upwardExtension, tvgNames, unaryOpName);
+        this.r2rUpward = new R2RUpwardExtension(this.upwardExtension, tvgNames, unaryOpName);
+    }
+    public CSpriteR2R(Set<String> queriedTypes, HierarchySchema hierarchySchema,List<String> tvgNames, String unaryOpName) {
+        this.r2r = null;
+        this.hierarchySchema = hierarchySchema;
+        this.queriedProperties = new HashSet<>();
+        this.queriedTypes = queriedTypes;
+        upwardExtension = new UpwardExtension(hierarchySchema.getSchema());
+        this.pruneHierarchy();
+        this.tvgNames = tvgNames;
+        this.unaryOpName = unaryOpName;
+        this.r2rUpward = new R2RUpwardExtension(this.upwardExtension, tvgNames, unaryOpName);
     }
 
     public void findTypes() {

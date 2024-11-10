@@ -11,26 +11,21 @@
 sosa:Observation a rdfs:Class ;
     rdfs:subClassOf :Update .
 
-:LocationObservation a rdfs:Class ;
-    rdfs:subClassOf sosa:Observation .
-
-:LowFrequencyLocationObservation a rdfs:Class ;
-    rdfs:subClassOf :LocationObservation .
-
-:HighFrequencyLocationObservation a rdfs:Class ;
-    rdfs:subClassOf :LocationObservation .
-
-:RFIDObservation a rdfs:Class ;
-    rdfs:subClassOf :LowFrequencyLocationObservation .
-
-:GPSObservation a rdfs:Class ;
-    rdfs:subClassOf :HighFrequencyLocationObservation .
-
-:BLEObservation a rdfs:Class ;
-    rdfs:subClassOf :HighFrequencyLocationObservation .
-
 sioc:Post a rdfs:Class ;
     rdfs:subClassOf :Update .
 
-:FacebookPost a rdfs:Class ;
-    rdfs:subClassOf sioc:Post .
+# Task1:
+# Add the hierarchy for:
+#                           :LocationObservation
+#                               /       \
+# :LowFrequencyLocationObservation      :HighFrequencyLocationObservation
+#           /                               /               \
+#  :RFIDObservation                 :GPSObservation        :BLEObservation
+
+
+# Task2:
+# Add the hierarchy for:
+#    sioc:Post
+#      |
+# :FacebookPost
+

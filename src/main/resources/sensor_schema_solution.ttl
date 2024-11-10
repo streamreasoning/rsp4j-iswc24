@@ -1,0 +1,36 @@
+@prefix : <http://rsp4j.io/covid/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix sioc: <http://rdfs.org/sioc/ns#>.
+
+
+:Update a rdfs:Class .
+
+sosa:Observation a rdfs:Class ;
+    rdfs:subClassOf :Update .
+
+:LocationObservation a rdfs:Class ;
+    rdfs:subClassOf sosa:Observation .
+
+:LowFrequencyLocationObservation a rdfs:Class ;
+    rdfs:subClassOf :LocationObservation .
+
+:HighFrequencyLocationObservation a rdfs:Class ;
+    rdfs:subClassOf :LocationObservation .
+
+:RFIDObservation a rdfs:Class ;
+    rdfs:subClassOf :LowFrequencyLocationObservation .
+
+:GPSObservation a rdfs:Class ;
+    rdfs:subClassOf :HighFrequencyLocationObservation .
+
+:BLEObservation a rdfs:Class ;
+    rdfs:subClassOf :HighFrequencyLocationObservation .
+
+sioc:Post a rdfs:Class ;
+    rdfs:subClassOf :Update .
+
+:FacebookPost a rdfs:Class ;
+    rdfs:subClassOf sioc:Post .
