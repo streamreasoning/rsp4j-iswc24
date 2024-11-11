@@ -1,4 +1,4 @@
-package org.streamreasoning.sld.processing.jena.tutorial.solution;
+package org.streamreasoning.sld.tutorial.processing.exercise;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.engine.binding.Binding;
@@ -17,30 +17,35 @@ import org.streamreasoning.polyflow.api.secret.time.TimeImpl;
 import org.streamreasoning.polyflow.api.stream.data.DataStream;
 import org.streamreasoning.polyflow.base.contentimpl.factories.AccumulatorContentFactory;
 import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
-import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
+import org.streamreasoning.polyflow.base.operatorsimpl.r2s.RStream;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import org.streamreasoning.sld.processing.jena.sds.SDSJena;
 import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
-import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
+import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class JenaReasonignSolution {
+public class RedesignCSPARQL {
+
+    /*
+     * C-SPARQL engine is the simplest RSP engine architecture.
+     * It is designed by pipelining Esper (a stream processor) and Jena (SPARQL engine)
+     *
+     * */
 
     public static void main(String[] args) throws InterruptedException {
+
+        ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
         JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
         DataStream<Graph> inputStream = generator.getStream("http://rsp4j.io/covid/observations");
 
         // define output stream
-        JenaBindingStream outStream = new JenaBindingStream("out");
+        DataStream<Binding> outStream = new JenaBindingStream("out");
 
         // Engine properties
         Report report = new ReportImpl();
@@ -51,6 +56,7 @@ public class JenaReasonignSolution {
 
         JenaGraphOrBindings emptyContent = new JenaGraphOrBindings(GraphFactory.createGraphMem());
 
+        // C-SPARQL content simply combines the window and the creation of a sparql dataset
         AccumulatorContentFactory<Graph, Graph, JenaGraphOrBindings> accumulatorContentFactory = new AccumulatorContentFactory<>(
                 (g) -> g,
                 JenaGraphOrBindings::new,
@@ -59,23 +65,16 @@ public class JenaReasonignSolution {
         );
 
 
-        ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
+        //The windowing mechanism used by C-SPARQL is time-hopping windows (or count based)
+        StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp = null;
 
-        StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp =
-                new HoppingWindowOpImpl<>(
-                        tick,
-                        instance,
-                        "w1",
-                        accumulatorContentFactory,
-                        report,
-                        1000,
-                        1000);
-        String schemaURI = "sensor_schema_solution.ttl"; //see the resource folder
-        // TASK: complete the schema of the used ontology
-        String query = "SELECT * WHERE {GRAPH ?g { ?s a <http://rsp4j.io/covid/Update> }}";
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning(query, Collections.singletonList(s2rOp.getName()), "partial_1", schemaURI);
+        /**
+         * In C-SPARQL redesign the post window operator looks like a full sparql query
+         * stripped from the temporal information
+         */
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = null;
 
-        RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
+        RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RStream<>();
 
         Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
         task = task.addS2ROperator(s2rOp, inputStream)
@@ -88,7 +87,6 @@ public class JenaReasonignSolution {
 
         List<DataStream<Graph>> inputStreams = new ArrayList<>();
         inputStreams.add(inputStream);
-
 
         List<DataStream<Binding>> outputStreams = new ArrayList<>();
         outputStreams.add(outStream);

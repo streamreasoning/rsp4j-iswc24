@@ -1,4 +1,4 @@
-package org.streamreasoning.sld.processing.jena.tutorial.solution;
+package org.streamreasoning.sld.tutorial.processing.solution;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -32,7 +32,7 @@ import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.TP;
 import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import org.streamreasoning.sld.processing.jena.sds.SDSJena;
 import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
-import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
+import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;

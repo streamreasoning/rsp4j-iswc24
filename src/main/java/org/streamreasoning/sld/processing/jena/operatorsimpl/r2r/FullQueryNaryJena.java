@@ -42,8 +42,6 @@ public class FullQueryNaryJena implements RelationToRelationOperator<JenaGraphOr
 
     @Override
     public JenaGraphOrBindings eval(List<JenaGraphOrBindings> datasets) {
-        JenaGraphOrBindings ds1 = datasets.get(0);
-        JenaGraphOrBindings ds2 = datasets.get(1);
 
         if (query == null || query.isEmpty()) {
             JenaGraphOrBindings res = new JenaGraphOrBindings();
@@ -69,7 +67,7 @@ public class FullQueryNaryJena implements RelationToRelationOperator<JenaGraphOr
                 res.add(rb.getBinding());
             }
 
-            JenaGraphOrBindings bindings = new JenaGraphOrBindings(new Union(ds1.getContent(), ds2.getContent()));
+            JenaGraphOrBindings bindings = new JenaGraphOrBindings();
             bindings.setResult(res);
             return bindings;
         }

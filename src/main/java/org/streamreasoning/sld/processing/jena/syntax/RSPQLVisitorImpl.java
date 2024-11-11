@@ -101,7 +101,6 @@ public class RSPQLVisitorImpl extends RSPQLBaseVisitor<Task<Graph, Graph, JenaGr
         where = where.replace("WINDOW", "GRAPH");
         this.sparql = QueryFactory.create(select + "\n" + where);
         this.resultVars = sparql.getResultVars();
-//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryJena(sparql, windows, "partial_1");
         RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryNaryJena(sparql, windows, "partial_1");
 
         task.addR2ROperator(r2rOp1);

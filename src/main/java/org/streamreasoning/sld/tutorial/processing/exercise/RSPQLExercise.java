@@ -1,4 +1,4 @@
-package org.streamreasoning.sld.processing.jena.tutorial.solution;
+package org.streamreasoning.sld.tutorial.processing.exercise;
 
 //import org.streamreasoning.rsp4j.yasper.querying.syntax.QueryFactory;
 
@@ -9,9 +9,9 @@ import org.streamreasoning.polyflow.api.processing.Task;
 import org.streamreasoning.polyflow.api.stream.data.DataStream;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
+import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
 import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
 import org.streamreasoning.sld.processing.jena.syntax.RSPQLQueryFactory;
-import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
 import org.streamreasoning.sld.processing.shared.ContinuousQuery;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class RSPQLSolution {
+public class RSPQLExercise {
 
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, InterruptedException {
@@ -67,44 +67,25 @@ public class RSPQLSolution {
                 "SELECT * " +
                 "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT1S] " +
                 "WHERE {" +
-                "   WINDOW ?w { ?person <http://rsp4j.io/covid/isIn> ?room } ." +
+                "   WINDOW ?w { ?s <http://rsp4j.io/covid/isIn> ?o } ." +
                 "}";
 
         // Task 2: Write a query to find out the COVID positive persons (?person) and their location (?room)
         String queryWhoIsPositiveWhere = "PREFIX : <http://rsp4j.io/covid/>  " +
                 "REGISTER ISTREAM <http://out/stream> AS " +
                 "SELECT * " +
-                "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT10S] \n" +
-                "FROM NAMED WINDOW :window2 ON <http://rsp4j.io/covid/testResults> [RANGE PT10S STEP PT10S] " +
+                "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT1S] " +
                 "WHERE {" +
-                "   WINDOW <http://rsp4j.io/covid/window1> { " +
-                "       ?person <http://rsp4j.io/covid/isIn> ?room .\n" +
-                "} ." +
-                "   WINDOW <http://rsp4j.io/covid/window2> { " +
-                "       ?testObservation <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?person. \n" +
-                "       ?testObservation <http://www.w3.org/ns/sosa/hasResult> <http://rsp4j.io/covid/positive> . " +
-                "} ." +
+                "   WINDOW ?w { ?s ?p ?o } ." +
                 "}";
         // Task 3: Write a query to find the person at risk of
         String queryPersonAtRisk = "PREFIX : <http://rsp4j.io/covid/>  " +
                 "REGISTER ISTREAM <http://out/stream> AS " +
                 "SELECT * " +
-                "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT1S] \n" +
-                "FROM NAMED WINDOW :window2 ON <http://rsp4j.io/covid/testResults> [RANGE PT10S STEP PT10S] \n" +
-                "FROM NAMED WINDOW :window3 ON <http://rsp4j.io/covid/tracing> [RANGE PT10S STEP PT10S] \n" +
+                "FROM NAMED WINDOW :window1 ON <http://rsp4j.io/covid/observations> [RANGE PT10S STEP PT1S] " +
                 "WHERE {" +
-                "   WINDOW <http://rsp4j.io/covid/window1> { " +
-                "       ?person <http://rsp4j.io/covid/isIn> ?room .\n" +
-                "} ." +
-                "   WINDOW <http://rsp4j.io/covid/window2> { " +
-                "       ?testObservation <http://www.w3.org/ns/sosa/hasFeatureOfInterest> ?person. \n" +
-                "       ?testObservation <http://www.w3.org/ns/sosa/hasResult> <http://rsp4j.io/covid/positive> . " +
-                "} ." +
-                "   WINDOW <http://rsp4j.io/covid/window3> { " +
-                "       ?personAtRisk <http://rsp4j.io/covid/isWith> ?person ." +
-                "} ." +
+                "   WINDOW ?w { ?s ?p ?o } ." +
                 "}";
-
         ContinuousQuery<Graph, Graph, JenaGraphOrBindings, Binding> parse = RSPQLQueryFactory.parse(queryWhoIsWhere);
 
         System.out.println(parse);
@@ -112,7 +93,6 @@ public class RSPQLSolution {
         JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
         // link the input streams
-        //generator.linkAndCoalescStreams(parse.instream());
         generator.linkInputStreamByName(parse.instream());
         // define output stream
         JenaBindingStream outStream = (JenaBindingStream) parse.outstream();

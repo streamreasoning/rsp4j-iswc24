@@ -1,7 +1,8 @@
-package org.streamreasoning.sld.publishing;
+package org.streamreasoning.sld.tutorial;
 
 
 
+import org.streamreasoning.sld.publishing.SLD;
 import org.streamreasoning.sld.publishing.builders.DistributionBuilder;
 import org.streamreasoning.sld.publishing.builders.WebStreamBuilder;
 import org.streamreasoning.sld.publishing.enums.Format;

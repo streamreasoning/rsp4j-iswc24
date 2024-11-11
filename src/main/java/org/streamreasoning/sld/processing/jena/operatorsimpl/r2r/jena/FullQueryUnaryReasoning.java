@@ -1,6 +1,5 @@
 package org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena;
 
-import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -16,6 +15,7 @@ import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 import org.streamreasoning.polyflow.api.operators.r2r.RelationToRelationOperator;
+import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +59,7 @@ public class FullQueryUnaryReasoning implements RelationToRelationOperator<JenaG
         JenaGraphOrBindings dataset = datasets.get(0);
 
         q.getProjectVars();
-        Node aDefault = NodeFactory.createURI("default");
+        Node aDefault = NodeFactory.createURI(tvgNames.get(0));
         DatasetGraph dg = new DatasetGraphInMemory();
         Graph g = dataset.getContent();
 

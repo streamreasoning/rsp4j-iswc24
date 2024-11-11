@@ -1,11 +1,9 @@
-package org.streamreasoning.sld.processing.jena.tutorial;
+package org.streamreasoning.sld.tutorial.processing.custom;
 
-import org.streamreasoning.sld.processing.jena.stream.JenaRDFStream;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphMemFactory;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.*;
 import org.streamreasoning.polyflow.api.stream.data.DataStream;
+import org.streamreasoning.sld.processing.jena.stream.JenaRDFStream;
+import org.streamreasoning.sld.processing.jena.stream.JenaRDFTripleStream;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,6 +20,7 @@ public class JenaCovidStreamsGenerator {
 
     private final String[] colors = new String[]{"Blue", "Green", "Red", "Yellow", "Black", "Grey", "White"};
     private final Map<String, DataStream<Graph>> activeStreams;
+    private final Map<String, DataStream<Triple>> activeStreamsTriples;
     private final AtomicBoolean isStreaming;
     private final Random randomGenerator;
     private AtomicLong streamIndexCounter;
@@ -33,9 +32,31 @@ public class JenaCovidStreamsGenerator {
     private DataStream<Graph> covidStream;
     private DataStream<Graph> contactStream;
 
-    private enum Person {Alice, Bob, Elena, Carl, David, John};
-    private enum Room {RedRoom, BlueRoom};
-    private enum EventType {RFID, Facebook, ContactTracing, HospitalResult};
+    private DataStream<Triple> observationStreamTriples;
+    private DataStream<Triple> covidStreamTriples;
+    ;
+    private DataStream<Triple> contactStreamTriples;
+    ;
+
+    public DataStream<Triple> getStreamTriple(String streamURI) {
+        if (!activeStreamsTriples.containsKey(streamURI)) {
+            JenaRDFTripleStream stream = new JenaRDFTripleStream(streamURI);
+            activeStreamsTriples.put(streamURI, stream);
+        }
+        return activeStreamsTriples.get(streamURI);
+    }
+
+    private enum Person {Alice, Bob, Elena, Carl, David, John}
+
+    ;
+
+    private enum Room {RedRoom, BlueRoom}
+
+    ;
+
+    private enum EventType {RFID, Facebook, ContactTracing, HospitalResult}
+
+    ;
 
     Map<Person, EventType> personsEventTypesMap =
             Map.of(Person.Alice, EventType.RFID,
@@ -54,21 +75,33 @@ public class JenaCovidStreamsGenerator {
     public JenaCovidStreamsGenerator() {
         this.streamIndexCounter = new AtomicLong(0);
         this.activeStreams = new HashMap<String, DataStream<Graph>>();
+        this.activeStreamsTriples = new HashMap<String, DataStream<Triple>>();
         this.isStreaming = new AtomicBoolean(false);
 
-        this.observationStream = new JenaRDFStream(PREFIX+"observations");
-        activeStreams.put(PREFIX+"observations", observationStream);
+        this.observationStream = new JenaRDFStream(PREFIX + "observations");
+        activeStreams.put(PREFIX + "observations", observationStream);
 
-        this.covidStream = new JenaRDFStream(PREFIX+"testResults");
-        activeStreams.put(PREFIX+"testResults", covidStream);
+        this.covidStream = new JenaRDFStream(PREFIX + "testResults");
+        activeStreams.put(PREFIX + "testResults", covidStream);
+
+        this.contactStream = new JenaRDFStream(PREFIX + "tracing");
+        activeStreams.put(PREFIX + "tracing", contactStream);
 
 
-        this.contactStream = new JenaRDFStream(PREFIX+"tracing");
-        activeStreams.put(PREFIX+"tracing", contactStream);
+        //triple streams
 
+        this.observationStreamTriples = new JenaRDFTripleStream(PREFIX + "observations");
+        activeStreamsTriples.put(PREFIX + "observations", observationStreamTriples);
+
+        this.covidStreamTriples = new JenaRDFTripleStream(PREFIX + "testResults");
+        activeStreamsTriples.put(PREFIX + "testResults", covidStreamTriples);
+
+        this.contactStreamTriples = new JenaRDFTripleStream(PREFIX + "tracing");
+        activeStreamsTriples.put(PREFIX + "tracing", contactStreamTriples);
 
         this.streamIndexCounter = new AtomicLong(0);
         randomGenerator = new Random(1337);
+
 
     }
 
@@ -94,11 +127,15 @@ public class JenaCovidStreamsGenerator {
                         while (this.isStreaming.get()) {
                             long finalTs = ts;
                             observationStream.put(createRandomObservationEvent(), ts);
+                            createRandomObservationEvent().stream().forEach(t -> observationStreamTriples.put(t, finalTs));
                             if (randomGenerator.nextDouble() > 0.4) {
                                 covidStream.put(createRandomCovidEvent(), ts);
+                                createRandomCovidEvent().stream().forEach(t -> covidStreamTriples.put(t, finalTs));
+
                             }
                             if (randomGenerator.nextDouble() >= 0.4) {
                                 contactStream.put(createRandomContactTracingEvent(), ts);
+                                createRandomContactTracingEvent().stream().forEach(t -> contactStreamTriples.put(t, finalTs));
                             }
                             ts += 5 * 60 * 1000;
                             try {
@@ -114,18 +151,21 @@ public class JenaCovidStreamsGenerator {
         }
     }
 
-    private Person selectRandomPerson(Person[] persons){
+    private Person selectRandomPerson(Person[] persons) {
         int randomIndex = randomGenerator.nextInt((persons.length));
         return persons[randomIndex];
     }
-    private Person selectRandomPerson(){
+
+    private Person selectRandomPerson() {
         return selectRandomPerson(Person.values());
     }
-    private Room selectRandomRoom(){
+
+    private Room selectRandomRoom() {
         int randomIndex = randomGenerator.nextInt((Room.values().length));
         return Room.values()[randomIndex];
     }
-    public Graph createRandomObservationEvent(){
+
+    public Graph createRandomObservationEvent() {
         Person randomPerson = selectRandomPerson(evenTyptesPersons);
         Room randomRoom = selectRandomRoom();
         EventType selectedType = personsEventTypesMap.get(randomPerson);
@@ -134,11 +174,11 @@ public class JenaCovidStreamsGenerator {
 
         Node a = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
         long eventID = streamIndexCounter.incrementAndGet();
-        switch (selectedType){
+        switch (selectedType) {
             case RFID:
                 graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), a, NodeFactory.createURI(PREFIX + "RFIDObservation"));
-                graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "madeBySensor"), NodeFactory.createURI(PREFIX + randomRoom+"_sensor"));
-                graph.add(NodeFactory.createURI(PREFIX + randomRoom+"_sensor"), NodeFactory.createURI(PREFIX_SOSA + "hasLocation"), NodeFactory.createURI(PREFIX + randomRoom));
+                graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "madeBySensor"), NodeFactory.createURI(PREFIX + randomRoom + "_sensor"));
+                graph.add(NodeFactory.createURI(PREFIX + randomRoom + "_sensor"), NodeFactory.createURI(PREFIX_SOSA + "hasLocation"), NodeFactory.createURI(PREFIX + randomRoom));
                 graph.add(NodeFactory.createURI(PREFIX + "_observation" + eventID), NodeFactory.createURI(PREFIX_SOSA + "hasFeatureOfInterest"), NodeFactory.createURI(PREFIX + randomPerson));
                 graph.add(NodeFactory.createURI(PREFIX + randomPerson), NodeFactory.createURI(PREFIX + "isIn"), NodeFactory.createURI(PREFIX + randomRoom));
                 break;
@@ -153,7 +193,8 @@ public class JenaCovidStreamsGenerator {
         }
         return graph;
     }
-    public Graph createRandomCovidEvent(){
+
+    public Graph createRandomCovidEvent() {
         Person randomPerson = selectRandomPerson();
 
 
@@ -168,7 +209,7 @@ public class JenaCovidStreamsGenerator {
         return graph;
     }
 
-    public Graph createRandomContactTracingEvent(){
+    public Graph createRandomContactTracingEvent() {
         Person randomPerson = selectRandomPerson(isWithPersons);
 
         Graph graph = GraphMemFactory.createGraphMem();
@@ -188,26 +229,28 @@ public class JenaCovidStreamsGenerator {
         this.isStreaming.set(false);
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         JenaCovidStreamsGenerator gen = new JenaCovidStreamsGenerator();
         for (int i = 0; i < 10; i++) {
             System.out.println("New event:");
             System.out.println(gen.createRandomContactTracingEvent());
         }
     }
-    public void linkInputStreamByName(List<DataStream<Graph>> inputStreams){
-        for(DataStream<Graph> s : inputStreams){
-            if(this.activeStreams.containsKey(s.getName())){
-                this.activeStreams.get(s.getName()).addConsumer((out, el, ts) -> s.put(el,ts));
-            }else{
+
+    public void linkInputStreamByName(List<DataStream<Graph>> inputStreams) {
+        for (DataStream<Graph> s : inputStreams) {
+            if (this.activeStreams.containsKey(s.getName())) {
+                this.activeStreams.get(s.getName()).addConsumer((out, el, ts) -> s.put(el, ts));
+            } else {
                 System.out.println("Stream not found: " + s.getName());
             }
         }
     }
-    public void linkAndCoalescStreams(List<DataStream<Graph>> inputStreams){
+
+    public void linkAndCoalescStreams(List<DataStream<Graph>> inputStreams) {
         DataStream<Graph> inputStream = inputStreams.get(0);
-        for(DataStream<Graph> s : this.activeStreams.values()){
-                s.addConsumer((out, el, ts) -> inputStream.put(el,ts));
+        for (DataStream<Graph> s : this.activeStreams.values()) {
+            s.addConsumer((out, el, ts) -> inputStream.put(el, ts));
 
         }
     }

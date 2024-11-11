@@ -1,19 +1,12 @@
-package org.streamreasoning.sld.processing.jena.tutorial.exercise;
+package org.streamreasoning.sld.tutorial.processing.exercise;
 
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.csprite.CSpriteR2R;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.csprite.HierarchySchema;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.TP;
+import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
 import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
 import org.streamreasoning.sld.processing.jena.sds.SDSJena;
 import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.algebra.op.OpTriple;
-import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.streamreasoning.polyflow.api.enums.Tick;
@@ -38,13 +31,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RedesignCSpriteExercise {
+public class JenaReasonignExercise {
 
     public static void main(String[] args) throws InterruptedException {
 
         JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
         DataStream<Graph> inputStream = generator.getStream("http://rsp4j.io/covid/observations");
+
         // define output stream
         JenaBindingStream outStream = new JenaBindingStream("out");
 
@@ -57,29 +51,15 @@ public class RedesignCSpriteExercise {
 
         JenaGraphOrBindings emptyContent = new JenaGraphOrBindings(GraphFactory.createGraphMem());
 
-
-
-        ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
-
-
-
-        System.out.println("Before pruning");
-        System.out.println(getHierarchySchema().getSchema());
-        CSpriteR2R csprite = new CSpriteR2R(Collections.singleton("http://rsp4j.io/covid/Update"), getHierarchySchema(),List.of("w1"), "partial_1");
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new TP(getTriple(), List.of("partial_1"), "partial_2");
-        System.out.println("After pruning");
-        System.out.println(csprite.getHierachy());
-        RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
-
-        // TASK: use CSprite to perform the upward extension in the S2R operator instead of the R2R operator
-        // you can use csprite.eval()
-
         AccumulatorContentFactory<Graph, Graph, JenaGraphOrBindings> accumulatorContentFactory = new AccumulatorContentFactory<>(
                 (g) -> g,
                 JenaGraphOrBindings::new,
                 JenaGraphOrBindings::new,
                 emptyContent
         );
+
+
+        ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
         StreamToRelationOperator<Graph, Graph, JenaGraphOrBindings> s2rOp =
                 new HoppingWindowOpImpl<>(
@@ -90,11 +70,17 @@ public class RedesignCSpriteExercise {
                         report,
                         1000,
                         1000);
+        String schemaURI = "sensor_schema.ttl"; //see the resource folder
+
+        // TASK: complete the schema of the used ontology
+        String query = "SELECT * WHERE {GRAPH ?g { ?s a <http://rsp4j.io/covid/Update> }}";
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning(query, Collections.singletonList(s2rOp.getName()), "partial_1", schemaURI);
+
+        RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
         Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
         task = task.addS2ROperator(s2rOp, inputStream)
-                .addR2ROperator(csprite)
-                .addR2ROperator(r2rOp2)
+                .addR2ROperator(r2rOp1)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())
                 .addSDS(new SDSJena())
@@ -103,6 +89,7 @@ public class RedesignCSpriteExercise {
 
         List<DataStream<Graph>> inputStreams = new ArrayList<>();
         inputStreams.add(inputStream);
+
 
         List<DataStream<Binding>> outputStreams = new ArrayList<>();
         outputStreams.add(outStream);
@@ -114,26 +101,5 @@ public class RedesignCSpriteExercise {
         generator.startStreaming();
         Thread.sleep(20_000);
         generator.stopStreaming();
-    }
-
-    private static OpTriple getTriple() {
-        Node s = Var.alloc("s");
-        Node p = NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-        Node o = NodeFactory.createURI(JenaCovidStreamsGenerator.PREFIX + "Update");
-        return new OpTriple(Triple.create(s, p, o));
-    }
-
-    private static HierarchySchema getHierarchySchema() {
-        HierarchySchema hierarchySchema = new HierarchySchema();
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX_SOSA + "Observation", JenaCovidStreamsGenerator.PREFIX + "Update");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX_SIOC + "Post", JenaCovidStreamsGenerator.PREFIX + "Update");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "LocationObservation", JenaCovidStreamsGenerator.PREFIX_SOSA + "Observation");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "FacebookPost", JenaCovidStreamsGenerator.PREFIX_SIOC + "Post");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "LowFrequencyLocationObservation", JenaCovidStreamsGenerator.PREFIX + "LocationObservation");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "RFIDObservation", JenaCovidStreamsGenerator.PREFIX + "LowFrequencyLocationObservation");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "HighFrequencyLocationObservation", JenaCovidStreamsGenerator.PREFIX + "LocationObservation");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "BLEObservation", JenaCovidStreamsGenerator.PREFIX + "HighFrequencyLocationObservation");
-        hierarchySchema.addSubClassOf(JenaCovidStreamsGenerator.PREFIX + "GPSObservation", JenaCovidStreamsGenerator.PREFIX + "HighFrequencyLocationObservation");
-        return hierarchySchema;
     }
 }

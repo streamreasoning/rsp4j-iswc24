@@ -1,11 +1,5 @@
-package org.streamreasoning.sld.processing.jena.tutorial.rsp;
+package org.streamreasoning.sld.tutorial.processing.solution;
 
-import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryJena;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
-import org.streamreasoning.sld.processing.jena.sds.SDSJena;
-import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
-import org.streamreasoning.sld.processing.jena.stream.JenaStreamGenerator;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -26,18 +20,25 @@ import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
 import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
+import org.streamreasoning.sld.processing.jena.sds.SDSJena;
+import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
+import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RedesignCSPARQL {
+public class JenaReasonignSolution {
 
     public static void main(String[] args) throws InterruptedException {
 
-        JenaStreamGenerator generator = new JenaStreamGenerator();
+        JenaCovidStreamsGenerator generator = new JenaCovidStreamsGenerator();
 
-        DataStream<Graph> inputStream = generator.getStream("http://test/stream1");
+        DataStream<Graph> inputStream = generator.getStream("http://rsp4j.io/covid/observations");
+
         // define output stream
         JenaBindingStream outStream = new JenaBindingStream("out");
 
@@ -52,10 +53,11 @@ public class RedesignCSPARQL {
 
         AccumulatorContentFactory<Graph, Graph, JenaGraphOrBindings> accumulatorContentFactory = new AccumulatorContentFactory<>(
                 (g) -> g,
-                (Graph content) -> {return new JenaGraphOrBindings(content);},
-                (r1, r2) -> new JenaGraphOrBindings(r1, r2),
+                JenaGraphOrBindings::new,
+                JenaGraphOrBindings::new,
                 emptyContent
         );
+
 
         ContinuousProgram<Graph, Graph, JenaGraphOrBindings, Binding> cp = new ContinuousProgramImpl<>();
 
@@ -63,23 +65,24 @@ public class RedesignCSPARQL {
                 new HoppingWindowOpImpl<>(
                         tick,
                         instance,
-                        "w1",
+                        JenaCovidStreamsGenerator.PREFIX + "w1",
+
                         accumulatorContentFactory,
                         report,
                         1000,
                         1000);
+        String schemaURI = "sensor_schema_solution.ttl"; //see the resource folder
 
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_1");
-        RelationToRelationOperator<JenaGraphOrBindings> r2rOp2 = new FullQueryUnaryJena("SELECT * WHERE {GRAPH ?g{?s ?p ?o }}", Collections.singletonList(s2rOp.getName()), "partial_2");
-//        RelationToRelationOperator<JenaGraphOrBindings> r2rOp3 = new FullQueryBinaryJena("", List.of("partial_1", "partial_2"), "partial_3");
+        // TASK: complete the schema of the used ontology
+
+        String query = "SELECT * WHERE {GRAPH ?g { ?s a <http://rsp4j.io/covid/Update> }}";
+        RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning(query, Collections.singletonList(s2rOp.getName()), "partial_1", schemaURI);
 
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
         Task<Graph, Graph, JenaGraphOrBindings, Binding> task = new TaskImpl<>();
         task = task.addS2ROperator(s2rOp, inputStream)
                 .addR2ROperator(r2rOp1)
-                .addR2ROperator(r2rOp2)
-//                .addR2ROperator(r2rOp3)
                 .addR2SOperator(r2sOp)
                 .addDAG(new DAGImpl<>())
                 .addSDS(new SDSJena())
