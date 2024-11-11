@@ -1,4 +1,4 @@
-package org.streamreasoning.sld.processing.jena.tutorial.rsp;
+package org.streamreasoning.sld.processing.jena.tutorial.solution;
 
 //import org.streamreasoning.rsp4j.yasper.querying.syntax.QueryFactory;
 
@@ -9,9 +9,9 @@ import org.streamreasoning.polyflow.api.processing.Task;
 import org.streamreasoning.polyflow.api.stream.data.DataStream;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
 import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
 import org.streamreasoning.sld.processing.jena.syntax.RSPQLQueryFactory;
+import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
 import org.streamreasoning.sld.processing.shared.ContinuousQuery;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class RSPQLExample {
+public class RSPQLSolution {
 
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, InterruptedException {
@@ -105,7 +105,7 @@ public class RSPQLExample {
                 "} ." +
                 "}";
 
-        ContinuousQuery<Graph, Graph, JenaGraphOrBindings, Binding> parse = RSPQLQueryFactory.parse(queryPersonAtRisk);
+        ContinuousQuery<Graph, Graph, JenaGraphOrBindings, Binding> parse = RSPQLQueryFactory.parse(queryWhoIsWhere);
 
         System.out.println(parse);
 

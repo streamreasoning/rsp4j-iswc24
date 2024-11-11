@@ -1,4 +1,4 @@
-package org.streamreasoning.sld.processing.jena.tutorial.reasoning;
+package org.streamreasoning.sld.processing.jena.tutorial.exercise;
 
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
 import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RedesignCSPRITE {
+public class RedesignCSpriteExercise {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -71,7 +71,7 @@ public class RedesignCSPRITE {
         System.out.println(csprite.getHierachy());
         RelationToStreamOperator<JenaGraphOrBindings, Binding> r2sOp = new RelationToStreamOpImpl();
 
-        //Task: use CSprite to perform the upward extension in the S2R operator instead of the R2R operator
+        // TASK: use CSprite to perform the upward extension in the S2R operator instead of the R2R operator
         // you can use csprite.eval()
 
         AccumulatorContentFactory<Graph, Graph, JenaGraphOrBindings> accumulatorContentFactory = new AccumulatorContentFactory<>(

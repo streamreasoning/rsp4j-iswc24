@@ -1,4 +1,4 @@
-package org.streamreasoning.sld.processing.jena.tutorial.reasoning;
+package org.streamreasoning.sld.processing.jena.tutorial.exercise;
 
 import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
 import org.streamreasoning.sld.processing.jena.tutorial.JenaCovidStreamsGenerator;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class JenaReasonignExample {
+public class JenaReasonignExercise {
 
     public static void main(String[] args) throws InterruptedException {
 
