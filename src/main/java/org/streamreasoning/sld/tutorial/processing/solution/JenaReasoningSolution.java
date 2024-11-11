@@ -1,11 +1,5 @@
-package org.streamreasoning.sld.tutorial.processing.exercise;
+package org.streamreasoning.sld.tutorial.processing.solution;
 
-import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
-import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
-import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
-import org.streamreasoning.sld.processing.jena.sds.SDSJena;
-import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -26,12 +20,18 @@ import org.streamreasoning.polyflow.base.operatorsimpl.dag.DAGImpl;
 import org.streamreasoning.polyflow.base.operatorsimpl.s2r.HoppingWindowOpImpl;
 import org.streamreasoning.polyflow.base.processing.ContinuousProgramImpl;
 import org.streamreasoning.polyflow.base.processing.TaskImpl;
+import org.streamreasoning.sld.processing.jena.datatypes.JenaGraphOrBindings;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2r.jena.FullQueryUnaryReasoning;
+import org.streamreasoning.sld.processing.jena.operatorsimpl.r2s.RelationToStreamOpImpl;
+import org.streamreasoning.sld.processing.jena.sds.SDSJena;
+import org.streamreasoning.sld.processing.jena.stream.JenaBindingStream;
+import org.streamreasoning.sld.tutorial.processing.custom.JenaCovidStreamsGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class JenaReasonignExercise {
+public class JenaReasoningSolution {
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -65,14 +65,15 @@ public class JenaReasonignExercise {
                 new HoppingWindowOpImpl<>(
                         tick,
                         instance,
-                        "w1",
+                        JenaCovidStreamsGenerator.PREFIX + "w1",
                         accumulatorContentFactory,
                         report,
                         1000,
                         1000);
-        String schemaURI = "sensor_schema.ttl"; //see the resource folder
+        String schemaURI = "sensor_schema_solution.ttl"; //see the resource folder
 
         // TASK: complete the schema of the used ontology
+
         String query = "SELECT * WHERE {GRAPH ?g { ?s a <http://rsp4j.io/covid/Update> }}";
         RelationToRelationOperator<JenaGraphOrBindings> r2rOp1 = new FullQueryUnaryReasoning(query, Collections.singletonList(s2rOp.getName()), "partial_1", schemaURI);
 

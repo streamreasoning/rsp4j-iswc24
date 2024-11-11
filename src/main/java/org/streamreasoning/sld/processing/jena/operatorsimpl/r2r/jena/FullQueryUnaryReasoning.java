@@ -64,7 +64,7 @@ public class FullQueryUnaryReasoning implements RelationToRelationOperator<JenaG
         Graph g = dataset.getContent();
 
         dg.addGraph(aDefault, g);
-        dg.addGraph(NodeFactory.createURI("inf"), reasoner.bind(g));
+        dg.addGraph(NodeFactory.createURI(tvgNames.get(0) + "_inf"), reasoner.bind(g));
 
         QueryExecution queryExecution = QueryExecutionFactory.create(q, DatasetImpl.wrap(dg));
         ResultSet resultSet = queryExecution.execSelect();
